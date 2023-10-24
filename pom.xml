@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>no.cantara.realestate</groupId>
+  <artifactId>desigo-plugin</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+
+  <name>realestate-desigo-plugin</name>
+  <url>https://github.com/Cantara/realestate-desigo-plugin</url>
+
+  <parent>
+    <groupId>no.cantara.emi</groupId>
+    <artifactId>parent</artifactId>
+    <version>8</version>
+  </parent>
+  <scm>
+    <developerConnection>scm:git:ssh://git@github.com/cantara/realestate-desigo-plugin.git</developerConnection>
+    <connection>scm:git:https://github.com/cantara/realestate-desigo-plugin.git</connection>
+    <url>https://github.com/cantara/realestate-desigo-plugin</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <slf4j.version>1.7.32</slf4j.version>
+    <slf4j.version>2.0.9</slf4j.version>
+    <typelib.version>0.1.0-SNAPSHOT</typelib.version>
+    <mockserver.version>5.15.0</mockserver.version>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>no.cantara.realestate</groupId>
+      <artifactId>typelib-java</artifactId>
+      <version>0.4.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>no.cantara.realestate</groupId>
+      <artifactId>azure-client-java</artifactId>
+      <version>0.4.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.6.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+      <version>1.5.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.14.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Cantara configuration lib -->
+    <dependency>
+      <groupId>no.cantara.config</groupId>
+      <artifactId>property-config</artifactId>
+      <version>0.8.17</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- users of library should be able to choose log implementation -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.11</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.1</version>
+        <configuration>
+          <environmentVariables>
+            <whydah_enabled>false</whydah_enabled>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>3.0.1</version>
+        <configuration>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <artifactSet>
+                <excludes>
+                  <exclude>junit:junit</exclude>
+                </excludes>
+              </artifactSet>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ComponentsXmlResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.schemas</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.handlers</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.tooling</resource>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
+      <!-- FindBugs Static Analysis -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.5</version>
+        <configuration>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+          <failOnError>true</failOnError>
+          <includeFilterFile>findbugs-security-include.xml</includeFilterFile>
+          <excludeFilterFile>findbugs-security-exclude.xml</excludeFilterFile>
+          <plugins>
+            <plugin>
+              <groupId>com.h3xstream.findsecbugs</groupId>
+              <artifactId>findsecbugs-plugin</artifactId>
+              <version>LATEST</version> <!-- Auto-update to the latest stable -->
+            </plugin>
+          </plugins>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>15</source>
+          <target>15</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <repositories>
+    <!-- Needed for property-config  -->
+    <repository>
+      <id>cantara-releases</id>
+      <name>Cantara Release Repository</name>
+      <url>https://mvnrepo.cantara.no/content/repositories/releases/</url>
+    </repository>
+    <repository>
+      <id>cantara-snapshots</id>
+      <name>Cantara Snapshot Repository</name>
+      <url>https://mvnrepo.cantara.no/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+</project>
