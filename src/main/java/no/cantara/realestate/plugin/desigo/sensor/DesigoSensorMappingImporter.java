@@ -29,8 +29,14 @@ public class DesigoSensorMappingImporter extends PluginSensorMappingImporter {
         List<MappedSensorId> mappedSensorIds = new ArrayList<>();
         boolean importFromAzureTable = config.asBoolean("sensormappings.azure.enabled", false);
         if (importFromAzureTable) {
-            String connectionString = (String) config.get("sensormappings.azure.connectionString");
+            String connectionString = config.asString("sensormappings.azure.connectionString", null);
+            if (connectionString == null) {
+                throw new IllegalArgumentException("Missing configuration: sensormappings.azure.connectionString");
+            }
             String tableName = config.asString("sensormappings.azure.tableName", null);
+            if (tableName == null) {
+                throw new IllegalArgumentException("Missing configuration: sensormappings.azure.tableName");
+            }
             List<MappedSensorId> azureTableSensorMappings = importAzureTableConfig(connectionString, tableName);
             log.info("Imported {} Desigo Sensor configs from Azure Table {}", azureTableSensorMappings.size(), tableName);
             totalCount += azureTableSensorMappings.size();
