@@ -18,7 +18,8 @@ public class DesigoApiClientManualTest {
         MockServerSetup.clearAndSetLoginMock();
         MockServerSetup.clearAndSetSensorMockData("8648f9cf-c135-5471-9906-9b3861e0b5ab");
         //MockServerSetup.clearAndSetSensorMockData("208540b1-ab8a-566a-8a41-8b4cee515baf");
-        DesigoApiClientRest apiClient = new DesigoApiClientRest(URI.create(apiUrl), null, null, new NotificationListenerStub());
+        DesigoApiClientRest apiClient = new DesigoApiClientRest(URI.create(apiUrl));
+        apiClient.openConnection(null, null, new NotificationListenerStub());
         apiClient.logon("jane-doe","strongPassword");
         assertTrue(apiClient.isHealthy());
     }

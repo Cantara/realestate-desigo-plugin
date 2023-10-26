@@ -58,6 +58,6 @@ class DesigoRealEstatePluginFactoryTest {
     @Test
     void createIngestionSimulators() {
         List<IngestionService> ingestionServices = applicationFactory.createIngestionServices();
-        assertEquals(2, ingestionServices.size());
+        assertEquals(3, ingestionServices.size());
     }
 }

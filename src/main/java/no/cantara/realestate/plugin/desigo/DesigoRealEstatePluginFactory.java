@@ -1,6 +1,7 @@
 package no.cantara.realestate.plugin.desigo;
 
 import no.cantara.realestate.RealEstateException;
+import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionService;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionServiceSimulator;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoTrendsIngestionServiceSimulator;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingImporter;
@@ -9,12 +10,17 @@ import no.cantara.realestate.plugins.RealEstatePluginFactory;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.distribution.DistributionService;
 import no.cantara.realestate.plugins.ingestion.IngestionService;
+import no.cantara.realestate.plugins.ingestion.PresentValueIngestionService;
 import no.cantara.realestate.plugins.sensormapping.PluginSensorMappingImporter;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
+    private static final Logger log = getLogger(DesigoRealEstatePluginFactory.class);
     private PluginConfig config = null;
     public static String PLUGIN_ID = "Desigo";
 
@@ -64,14 +70,25 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
             ingestionServices.add(new DesigoPresentValueIngestionServiceSimulator());
             ingestionServices.add(new DesigoTrendsIngestionServiceSimulator());
         }
+        boolean useProdBasClient = config.asBoolean("sd.api.prod", false);
+        if (useProdBasClient) {
+            PresentValueIngestionService presentValueService = createPresentValueIngestionService();
+            ingestionServices.add(presentValueService);
+        }
         return ingestionServices;
+    }
+
+    private PresentValueIngestionService createPresentValueIngestionService() {
+        if (config == null) {
+            throw new RealEstateException("Missing configuration. Please call initialize() first.");
+        }
+        PresentValueIngestionService presentValueService = new DesigoPresentValueIngestionService();
+        return presentValueService;
     }
 
     @Override
     public List<DistributionService> createDistributionServices() {
-        if (config == null) {
-            throw new RealEstateException("Missing configuration. Please call initialize() first.");
-        }
+        log.warn("DistributionServices not implemented for Desigo");
         return null;
     }
 }

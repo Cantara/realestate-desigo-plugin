@@ -52,7 +52,7 @@ public class DesigoApiClientRest implements BasClient {
     public static final String UNKNOWN_HOST = "UNKNOWN_HOST";
 
     private static final String LATEST_BY_DATE = "SampleDateDescending";
-    private final NotificationListener notificationListener;
+    private NotificationListener notificationListener;
     private DesigoUserToken userToken = null;
     private long numberOfTrendSamplesReceived = 0;
     private boolean isHealthy = true;
@@ -60,12 +60,17 @@ public class DesigoApiClientRest implements BasClient {
     private String username;
     private String password;
 
-    public DesigoApiClientRest(URI apiUri, String username, String password, NotificationListener notificationListener) {
+    public DesigoApiClientRest(URI apiUri) {
         this.apiUri = apiUri;
+    }
+
+    public void openConnection(String username, String password, NotificationListener notificationListener) throws LogonFailedException {
         this.username = username;
         this.password = password;
         this.notificationListener = notificationListener;
+        logon(username, password);
     }
+
 
 
     @Override
@@ -510,7 +515,8 @@ public class DesigoApiClientRest implements BasClient {
         String password = args[3];
         URI apiUri = new URI(apiUrl);
 
-        DesigoApiClientRest apiClient = new DesigoApiClientRest(apiUri, userName, password, new NotificationListenerStub());
+        DesigoApiClientRest apiClient = new DesigoApiClientRest(apiUri);
+        apiClient.openConnection(userName, password, new NotificationListenerStub());
         String bearerToken = apiClient.findAccessToken();
         Set<TrendSample> trends = apiClient.findTrendSamples(bearerToken, trendId);
         for (TrendSample trend : trends) {

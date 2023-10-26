@@ -2,13 +2,13 @@ package no.cantara.realestate.plugin.desigo.ingestion;
 
 import no.cantara.realestate.observations.ObservationListener;
 import no.cantara.realestate.observations.ObservedValue;
+import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.ingestion.TrendsIngestionService;
 import no.cantara.realestate.plugins.notifications.NotificationListener;
 import no.cantara.realestate.sensors.SensorId;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public class DesigoTrendsIngestionServiceSimulator implements TrendsIngestionService {
 
@@ -37,7 +37,7 @@ public class DesigoTrendsIngestionServiceSimulator implements TrendsIngestionSer
     }
 
     @Override
-    public boolean initialize(Properties properties) {
+    public boolean initialize(PluginConfig properties) {
         isInitialized = true;
         return true;
     }
