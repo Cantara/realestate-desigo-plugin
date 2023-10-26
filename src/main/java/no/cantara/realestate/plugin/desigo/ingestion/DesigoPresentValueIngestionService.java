@@ -79,7 +79,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
     @Override
     public boolean initialize(PluginConfig config) {
         this.config = config;
-        String apiUrl = config.asString("sd.api.uri", "http://localhost:8080");
+            String apiUrl = config.asString("sd.api.uri", "http://<localhost>:<port>");
         apiUri = URI.create(apiUrl);
         desigoApiClient = new DesigoApiClientRest(apiUri);
         isInitialized = true;
