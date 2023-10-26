@@ -28,7 +28,6 @@
     <maven.compiler.target>17</maven.compiler.target>
     <slf4j.version>1.7.32</slf4j.version>
     <slf4j.version>2.0.9</slf4j.version>
-    <typelib.version>0.1.0-SNAPSHOT</typelib.version>
     <mockserver.version>5.15.0</mockserver.version>
   </properties>
 
@@ -37,7 +36,7 @@
     <dependency>
       <groupId>no.cantara.realestate</groupId>
       <artifactId>typelib-java</artifactId>
-      <version>0.4.1-SNAPSHOT</version>
+      <version>0.4.1</version>
     </dependency>
     <dependency>
       <groupId>no.cantara.realestate</groupId>
