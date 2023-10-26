@@ -2,14 +2,14 @@ package no.cantara.realestate.plugin.desigo.ingestion;
 
 import no.cantara.realestate.observations.ObservationListener;
 import no.cantara.realestate.observations.ObservedValue;
-import no.cantara.realestate.plugins.ingestion.PresentValueIngestionService;
+import no.cantara.realestate.plugins.ingestion.TrendsIngestionService;
 import no.cantara.realestate.sensors.SensorId;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class DesigoPresentValueIngestionServiceSimulator implements PresentValueIngestionService {
+public class DesigoTrendsIngestionServiceSimulator implements TrendsIngestionService {
 
     private boolean isInitialized = false;
     private long numberOfMessagesImported = 0;
@@ -17,10 +17,20 @@ public class DesigoPresentValueIngestionServiceSimulator implements PresentValue
 
     private List<SensorId> sensorIds = new ArrayList<>();
     private ObservationListener observationListener;
+    @Override
+    public void ingestTrends() {
+        int max = 35;
+        int min = 10;
+        for (SensorId sensorId : sensorIds) {
+            ObservedValue observedValue = new ObservedValue(sensorId, ((Math.random() * (max - min)) + min));
+            observationListener.observedValue(observedValue);
+        }
+    }
+
 
     @Override
     public String getName() {
-        return "SimulatorDesigoPresentValueIngestionService";
+        return "SimulatorDesigoTrendsIngestionService";
     }
 
     @Override
@@ -80,13 +90,4 @@ public class DesigoPresentValueIngestionServiceSimulator implements PresentValue
         return numberOfMessagesFailed;
     }
 
-    @Override
-    public void ingestPresentValues() {
-        int max = 35;
-        int min = 10;
-        for (SensorId sensorId : sensorIds) {
-            ObservedValue observedValue = new ObservedValue(sensorId, ((Math.random() * (max - min)) + min));
-            observationListener.observedValue(observedValue);
-        }
-    }
 }

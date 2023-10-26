@@ -1,6 +1,8 @@
 package no.cantara.realestate.plugin.desigo;
 
 import no.cantara.realestate.RealEstateException;
+import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionServiceSimulator;
+import no.cantara.realestate.plugin.desigo.ingestion.DesigoTrendsIngestionServiceSimulator;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingImporter;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingSimulator;
 import no.cantara.realestate.plugins.RealEstatePluginFactory;
@@ -9,6 +11,7 @@ import no.cantara.realestate.plugins.distribution.DistributionService;
 import no.cantara.realestate.plugins.ingestion.IngestionService;
 import no.cantara.realestate.plugins.sensormapping.PluginSensorMappingImporter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
@@ -52,10 +55,16 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
 
     @Override
     public List<IngestionService> createIngestionServices() {
+        List<IngestionService> ingestionServices = new ArrayList<>();
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
-        return null;
+        boolean useSimulators = config.asBoolean("sensormappings.simulator.enabled", false);
+        if (useSimulators) {
+            ingestionServices.add(new DesigoPresentValueIngestionServiceSimulator());
+            ingestionServices.add(new DesigoTrendsIngestionServiceSimulator());
+        }
+        return ingestionServices;
     }
 
     @Override
