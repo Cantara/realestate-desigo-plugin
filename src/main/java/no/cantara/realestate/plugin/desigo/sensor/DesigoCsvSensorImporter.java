@@ -30,7 +30,10 @@ public class DesigoCsvSensorImporter extends CsvSensorImporter {
         log.debug("ColumnNames: {}",collection.getColumnNames());
         for (Map<String, String> record : collection.getRecords()) {
             //MetasysObjectReference,MetasysObjectId
-            SensorId sensorId = new DesigoSensorId( record.get("DesigoId"),record.get("DesigoPropertyId"));
+            DesigoSensorId sensorId = new DesigoSensorId( record.get("DesigoId"),record.get("DesigoPropertyId"));
+            if (record.containsKey("DesigoTrendId")) {
+                sensorId.setTrendId(record.get("DesigoTrendId"));
+            }
             sensorIds.add(sensorId);
         }
         return sensorIds;
@@ -44,7 +47,10 @@ public class DesigoCsvSensorImporter extends CsvSensorImporter {
         log.debug("ColumnNames: {}", columnNames);
         for (Map<String, String> record : collection.getRecords()) {
 
-            SensorId sensorId = new DesigoSensorId( record.get("DesigoId"),record.get("DesigoPropertyId"));
+            DesigoSensorId sensorId = new DesigoSensorId( record.get("DesigoId"),record.get("DesigoPropertyId"));
+            if(record.containsKey("DesigoTrendId")) {
+                sensorId.setTrendId(record.get("DesigoTrendId"));
+            }
             SensorRecObject sensorRecObject = importSensorRecObject(columnNames, record);
             MappedSensorId mappedSensorId = new MappedSensorId(sensorId, sensorRecObject);
             mappedSensorIds.add(mappedSensorId);

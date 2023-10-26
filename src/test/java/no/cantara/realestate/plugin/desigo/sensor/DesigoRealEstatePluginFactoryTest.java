@@ -1,6 +1,7 @@
 package no.cantara.realestate.plugin.desigo.sensor;
 
 import no.cantara.realestate.RealEstateException;
+import no.cantara.realestate.plugin.desigo.DesigoRealEstatePluginFactory;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.sensormapping.PluginSensorMappingImporter;
 import no.cantara.realestate.sensors.MappedSensorId;

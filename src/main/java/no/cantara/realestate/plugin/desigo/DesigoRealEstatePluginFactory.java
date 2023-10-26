@@ -1,6 +1,8 @@
-package no.cantara.realestate.plugin.desigo.sensor;
+package no.cantara.realestate.plugin.desigo;
 
 import no.cantara.realestate.RealEstateException;
+import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingImporter;
+import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingSimulator;
 import no.cantara.realestate.plugins.RealEstatePluginFactory;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.distribution.DistributionService;
@@ -11,10 +13,11 @@ import java.util.List;
 
 public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
     private PluginConfig config = null;
+    public static String PLUGIN_ID = "Desigo";
 
     @Override
     public String getId() {
-        return "Desigo";
+        return PLUGIN_ID;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package no.cantara.realestate.plugin.desigo.sensor;
 
-import no.cantara.config.ApplicationProperties;
+import no.cantara.realestate.plugin.desigo.DesigoRealEstatePluginFactory;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.sensors.MappedSensorId;
 import org.slf4j.Logger;
@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class ManualPluginFactoryTest {
