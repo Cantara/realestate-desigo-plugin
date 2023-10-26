@@ -36,24 +36,40 @@
     <dependency>
       <groupId>no.cantara.realestate</groupId>
       <artifactId>typelib-java</artifactId>
-      <version>0.4.1</version>
+      <version>0.4.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>no.cantara.realestate</groupId>
       <artifactId>azure-client-java</artifactId>
       <version>0.4.0</version>
     </dependency>
+
+    <!-- Should be same as cloudconnector -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
+      <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>5.2.1</version>
+      <scope>provided</scope>
+    </dependency>
 
+    <!-- TEST -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>5.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-client-java</artifactId>
+      <version>${mockserver.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

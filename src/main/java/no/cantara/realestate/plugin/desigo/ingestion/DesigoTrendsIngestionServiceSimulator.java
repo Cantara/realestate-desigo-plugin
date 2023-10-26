@@ -3,6 +3,7 @@ package no.cantara.realestate.plugin.desigo.ingestion;
 import no.cantara.realestate.observations.ObservationListener;
 import no.cantara.realestate.observations.ObservedValue;
 import no.cantara.realestate.plugins.ingestion.TrendsIngestionService;
+import no.cantara.realestate.plugins.notifications.NotificationListener;
 import no.cantara.realestate.sensors.SensorId;
 
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ public class DesigoTrendsIngestionServiceSimulator implements TrendsIngestionSer
 
     private List<SensorId> sensorIds = new ArrayList<>();
     private ObservationListener observationListener;
+    private NotificationListener notificationListener;
+
     @Override
     public void ingestTrends() {
         int max = 35;
@@ -40,8 +43,9 @@ public class DesigoTrendsIngestionServiceSimulator implements TrendsIngestionSer
     }
 
     @Override
-    public void openConnection(ObservationListener observationListener) {
+    public void openConnection(ObservationListener observationListener, NotificationListener notificationListener) {
         this.observationListener = observationListener;
+        this.notificationListener = notificationListener;
     }
 
     @Override
