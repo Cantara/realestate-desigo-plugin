@@ -1,6 +1,7 @@
 package no.cantara.realestate.plugin.desigo.sensor;
 
 import no.cantara.config.ApplicationProperties;
+import no.cantara.config.testsupport.ApplicationPropertiesTestHelper;
 import no.cantara.realestate.RealEstateException;
 import no.cantara.realestate.plugin.desigo.DesigoRealEstatePluginFactory;
 import no.cantara.realestate.plugins.config.PluginConfig;
@@ -24,11 +25,12 @@ class DesigoRealEstatePluginFactoryTest {
 
     @BeforeAll
     static void beforeAll() {
-        ApplicationProperties.builder().classpathPropertiesFile("desigoFacorySimulators.properties").buildAndSetStaticSingleton();
+        ApplicationPropertiesTestHelper.enableMutableSingleton();
+
     }
     @BeforeEach
     void setUp() {
-        config = ApplicationProperties.getInstance();
+        config = ApplicationProperties.builder().classpathPropertiesFile("desigoFacorySimulators.properties").build();
         Map<String, String> sensormappings = config.subMap(PLUGIN_ID);
         assertNotNull(sensormappings);
         assertTrue(sensormappings.keySet().size() > 0);

@@ -1,6 +1,7 @@
 package no.cantara.realestate.plugin.desigo.sensor;
 
 import no.cantara.config.ApplicationProperties;
+import no.cantara.config.testsupport.ApplicationPropertiesTestHelper;
 import no.cantara.realestate.sensors.MappedSensorId;
 import no.cantara.realestate.sensors.SensorId;
 import no.cantara.realestate.sensors.desigo.DesigoSensorId;
@@ -21,14 +22,14 @@ class DesigoTableSensorImporterTest {
 
     @BeforeAll
     static void beforeAll() {
-        ApplicationProperties.builder().classpathPropertiesFile("desigoImporter.properties").buildAndSetStaticSingleton();
+        ApplicationPropertiesTestHelper.enableMutableSingleton();
     }
 
     @BeforeEach
     void setUp() {
-        config = ApplicationProperties.getInstance();
-        assertNotNull(config.get("sensormappings.csv.directory"));
-        assertTrue(config.asBoolean("sensormappings.table.enabled", false), "sensormappings.table.enabled should be true");
+        config = ApplicationProperties.builder().classpathPropertiesFile("desigoFacorySimulators.properties").build();
+        assertNotNull(config.get("Desigo.sensormappings.csv.directory"));
+        assertTrue(config.asBoolean("Desigo.sensormappings.table.enabled", false), "sensormappings.table.enabled should be true");
 
         List<Map<String, String>> tableRows = List.of(
                 Map.of("DesigoId", "d1", "DesigoPropertyId", "p1", "DesigoTrendId", "t1", "Tfm", "tfm1", "RecId", "rec1"),

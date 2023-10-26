@@ -1,6 +1,7 @@
 package no.cantara.realestate.plugin.desigo.sensor;
 
 import no.cantara.config.ApplicationProperties;
+import no.cantara.config.testsupport.ApplicationPropertiesTestHelper;
 import no.cantara.realestate.sensors.SensorId;
 import org.slf4j.Logger;
 
@@ -20,6 +21,7 @@ class ManualDesigoCsvSensorImporterTest {
     sensormappings.csv.filePrefix=Desigo
      */
     public static void main(String[] args) {
+        ApplicationPropertiesTestHelper.enableMutableSingleton();
         ApplicationProperties coinfig = ApplicationProperties.builder().defaults().buildAndSetStaticSingleton();
         String importDirectoryPath = coinfig.get("sensormappings.csv.directory");
         File importDirectory = new File(importDirectoryPath);

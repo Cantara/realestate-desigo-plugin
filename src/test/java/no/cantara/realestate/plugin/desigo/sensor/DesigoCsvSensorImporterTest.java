@@ -1,6 +1,7 @@
 package no.cantara.realestate.plugin.desigo.sensor;
 
 import no.cantara.config.ApplicationProperties;
+import no.cantara.config.testsupport.ApplicationPropertiesTestHelper;
 import no.cantara.realestate.sensors.MappedSensorId;
 import no.cantara.realestate.sensors.SensorId;
 import no.cantara.realestate.sensors.desigo.DesigoSensorId;
@@ -21,12 +22,13 @@ class DesigoCsvSensorImporterTest {
 
     @BeforeAll
     static void beforeAll() {
-        ApplicationProperties.builder().classpathPropertiesFile("desigoImporter.properties").buildAndSetStaticSingleton();
+        ApplicationPropertiesTestHelper.enableMutableSingleton();
+
     }
 
     @BeforeEach
     void setUp() {
-        config = ApplicationProperties.getInstance();
+        config = ApplicationProperties.builder().classpathPropertiesFile("desigoImporter.properties").build();
         assertNotNull(config.get("sensormappings.csv.directory"));
         assertTrue(config.asBoolean("sensormappings.csv.enabled", false), "sensormappings.csv.enabled should be true");
         assertEquals(config.get("sensormappings.csv.filePrefix"), PLUGIN_ID);
