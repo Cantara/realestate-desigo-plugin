@@ -52,6 +52,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
 
     @Override
     public void ingestPresentValues() {
+        log.debug("Ingesting present values from Desigo CC API {} using sensorIds {}", apiUri, sensorIds);
         for (SensorId sensorId : sensorIds) {
             try {
                 DesigoPresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
