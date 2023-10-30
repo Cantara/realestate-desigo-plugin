@@ -12,4 +12,6 @@ public interface TrendsLastUpdatedService {
     void setLastFailedAt(DesigoSensorId sensorId, Instant lastFailedAt);
 
     void persistLastUpdated(List<DesigoSensorId> sensorIds);
+
+    void persistLastFailed(List<DesigoSensorId> sensorIds);
 }

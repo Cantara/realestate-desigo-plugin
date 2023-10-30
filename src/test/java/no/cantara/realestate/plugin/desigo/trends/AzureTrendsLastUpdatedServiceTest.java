@@ -24,7 +24,8 @@ class AzureTrendsLastUpdatedServiceTest {
     private PluginConfig pluginConfig;
     private TrendsLastUpdatedRepository trendsLastUpdatedRepository;
 
-    private AzureTableClient azureTableClient;
+    private AzureTableClient lastUpdatedClient;
+    private AzureTableClient lastFailedClient;
 
     private TableClient tableClient;
 
@@ -37,8 +38,9 @@ class AzureTrendsLastUpdatedServiceTest {
         pluginConfig = new PluginConfig(config);
         trendsLastUpdatedRepository = new TrendsLastUpdatedRepository();
         tableClient = mock(TableClient.class);
-        azureTableClient = new AzureTableClient(tableClient);
-        trendsLastUpdatedService = new AzureTrendsLastUpdatedService(pluginConfig, trendsLastUpdatedRepository, azureTableClient);
+        lastUpdatedClient = new AzureTableClient(tableClient);
+        lastFailedClient = new AzureTableClient(tableClient);
+        trendsLastUpdatedService = new AzureTrendsLastUpdatedService(pluginConfig, trendsLastUpdatedRepository, lastUpdatedClient, lastFailedClient);
     }
 
     @Test
@@ -55,7 +57,7 @@ class AzureTrendsLastUpdatedServiceTest {
         when(pagedIterable.stream()).thenReturn(stubRows.stream());
         when(tableClient.listEntities(isA(ListEntitiesOptions.class), isNull(), isNull())).thenReturn(pagedIterable);
         trendsLastUpdatedService.readLastUpdated();
-        assertEquals(1, trendsLastUpdatedRepository.getSize());
+        assertEquals(1, trendsLastUpdatedRepository.countLastUpdatedSensors());
 //        verify(trendsLastUpdatedRepository).setLastUpdated(isA(DesigoSensorId.class), isA(Instant.class));
     }
 
@@ -70,7 +72,7 @@ class AzureTrendsLastUpdatedServiceTest {
         when(pagedIterable.stream()).thenReturn(stubRows.stream());
         when(tableClient.listEntities(isA(ListEntitiesOptions.class), isNull(), isNull())).thenReturn(pagedIterable);
         trendsLastUpdatedService.readLastUpdated();
-        assertEquals(1, trendsLastUpdatedRepository.getSize());
+        assertEquals(1, trendsLastUpdatedRepository.countLastUpdatedSensors());
 //        verify(trendsLastUpdatedRepository).setLastUpdated(isA(DesigoSensorId.class), isA(Instant.class));
     }
 
@@ -80,11 +82,25 @@ class AzureTrendsLastUpdatedServiceTest {
         sensorId.setId("id");
         sensorId.setTrendId("trendId");
         Instant newYearsEve = Instant.parse("2020-01-01T00:00:00.00Z");
-        trendsLastUpdatedRepository.setLastUpdated(sensorId, newYearsEve);
+        trendsLastUpdatedRepository.addLastUpdated(sensorId, newYearsEve);
         List<DesigoSensorId> sensorIds = new ArrayList<>();
         sensorIds.add(sensorId);
         trendsLastUpdatedService.persistLastUpdated(sensorIds);
-        assertEquals(1, trendsLastUpdatedRepository.getSize());
+        assertEquals(1, trendsLastUpdatedRepository.countLastUpdatedSensors());
+        verify(tableClient, times(1)).updateEntity(isA(TableEntity.class));
+    }
+
+    @Test
+    void persistLastFailedAt() {
+        DesigoSensorId sensorId = new DesigoSensorId("desigoId", "desigoPropertyId");
+        sensorId.setId("id");
+        sensorId.setTrendId("trendId");
+        Instant newYearsEve = Instant.parse("2020-01-01T00:00:00.00Z");
+        trendsLastUpdatedRepository.addLastFailed(sensorId, newYearsEve);
+        List<DesigoSensorId> sensorIds = new ArrayList<>();
+        sensorIds.add(sensorId);
+        trendsLastUpdatedService.persistLastFailed(sensorIds);
+        assertEquals(1, trendsLastUpdatedRepository.countLastFailedSensors());
         verify(tableClient, times(1)).updateEntity(isA(TableEntity.class));
     }
 }

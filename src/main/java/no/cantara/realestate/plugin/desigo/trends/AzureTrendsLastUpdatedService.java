@@ -17,7 +17,8 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     private final PluginConfig config;
     private final TrendsLastUpdatedRepository repository;
 
-    private AzureTableClient azureTableClient;
+    private AzureTableClient lastUpdatedClient;
+    private AzureTableClient lastFailedClient;
 
 
     public AzureTrendsLastUpdatedService(PluginConfig config, TrendsLastUpdatedRepository repository) {
@@ -28,17 +29,18 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     /*
     Used for testing
      */
-    protected AzureTrendsLastUpdatedService(PluginConfig config, TrendsLastUpdatedRepository repository, AzureTableClient azureTableClient) {
+    protected AzureTrendsLastUpdatedService(PluginConfig config, TrendsLastUpdatedRepository repository, AzureTableClient lastUpdatedClient, AzureTableClient lastFailedClient) {
         this.config = config;
         this.repository = repository;
-        this.azureTableClient = azureTableClient;
+        this.lastUpdatedClient = lastUpdatedClient;
+        this.lastFailedClient = lastFailedClient;
     }
 
     @Override
     public void readLastUpdated() {
-        verifyOrInitializeAzureTableClient();
+        verifyOrInitializeAzureTableClients();
         String partitionKey = config.asString("trends.lastupdated.partitionKey", "Desigo");
-        azureTableClient.listRows(partitionKey).forEach(tableEntity -> {
+        lastUpdatedClient.listRows(partitionKey).forEach(tableEntity -> {
             String trendId = tableEntity.get("RowKey");
             String id = tableEntity.get("DigitalTwinSensorId");
             String desigoObjectId = tableEntity.get("DesigoId");
@@ -55,16 +57,23 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
             DesigoSensorId sensorId = new DesigoSensorId(desigoObjectId, desigoPropertyId);
             sensorId.setId(id);
             sensorId.setTrendId(trendId);
-            repository.setLastUpdated(sensorId, lastUpdatedAt);
+            repository.addLastUpdated(sensorId, lastUpdatedAt);
         });
     }
 
-    void verifyOrInitializeAzureTableClient() {
+    void verifyOrInitializeAzureTableClients() {
         //trends.lastupdated.enabled=true
         //trends.lastupdated.tableName=lastupdated
         //trends.lastupdated.partitionKey=Desigo
-        if (azureTableClient == null) {
-            azureTableClient = new AzureTableClient(config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null), config.asString("trends.lastupdated.tableName", null));
+        String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
+        if (lastUpdatedClient == null) {
+
+            String tableName = config.asString("trends.lastupdated.tableName", null);
+            lastUpdatedClient = new AzureTableClient(connectionString, tableName);
+        }
+        if (lastFailedClient == null) {
+            String tableName = config.asString("trends.lastFailed.tableName", null);
+            lastFailedClient = new AzureTableClient(connectionString, tableName);
         }
     }
 
@@ -77,12 +86,13 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
 
     @Override
     public void setLastUpdatedAt(DesigoSensorId sensorId, Instant lastUpdatedAt) {
+        repository.addLastUpdated(sensorId, lastUpdatedAt);
 
     }
 
     @Override
     public void setLastFailedAt(DesigoSensorId sensorId, Instant lastFailedAt) {
-
+        repository.addLastFailed(sensorId, lastFailedAt);
     }
 
     @Override
@@ -102,7 +112,29 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
                         "DesigoPropertyId", desigoPropertyId,
                         "LastUpdatedAt", lastUpdatedAtString
                 );
-                azureTableClient.updateRow(partitionKey, rowKey,properties);
+                lastUpdatedClient.updateRow(partitionKey, rowKey,properties);
+            }
+        }
+    }
+
+    @Override
+    public void persistLastFailed(List<DesigoSensorId> sensorIds) {
+        String partitionKey = config.asString("trends.lastupdated.partitionKey", "Desigo");
+        for (DesigoSensorId sensorId : sensorIds) {
+            Instant lastFailedAt = repository.getTrendsLastFailed().get(sensorId);
+            if (lastFailedAt != null) {
+                String rowKey = sensorId.getTrendId();
+                String id = sensorId.getId();
+                String desigoObjectId = sensorId.getDesigoId();
+                String desigoPropertyId = sensorId.getDesigoPropertyId();
+                String lastUpdatedAtString = lastFailedAt.toString();
+                Map<String, Object> properties = Map.of(
+                        "DigitalTwinSensorId", id,
+                        "DesigoId", desigoObjectId,
+                        "DesigoPropertyId", desigoPropertyId,
+                        "LastUpdatedAt", lastUpdatedAtString
+                );
+                lastUpdatedClient.updateRow(partitionKey, rowKey,properties);
             }
         }
     }

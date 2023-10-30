@@ -18,22 +18,22 @@ public class TrendsLastUpdatedRepository {
     public void updateUpdatedIfNullOrNewer(DesigoSensorId id, Instant lastUpdated) {
         Instant lastUpdatedStored = trendsLastUpdated.get(id);
         if (lastUpdatedStored == null || lastUpdated.isAfter(lastUpdatedStored)) {
-            setLastUpdated(id, lastUpdated);
+            addLastUpdated(id, lastUpdated);
         }
     }
 
     public void updateFailedIfNullOrNewer(DesigoSensorId id, Instant lastFailed) {
         Instant lastFailedStored = trendsLastFailed.get(id);
         if (lastFailedStored == null || lastFailed.isAfter(lastFailedStored)) {
-            setLastFailed(id, lastFailed);
+            addLastFailed(id, lastFailed);
         }
     }
 
-    private void setLastFailed(DesigoSensorId id, Instant lastFailed) {
+    public void addLastFailed(DesigoSensorId id, Instant lastFailed) {
         trendsLastFailed.put(id, lastFailed);
     }
 
-    public void setLastUpdated(DesigoSensorId id, Instant lastUpdated) {
+    public void addLastUpdated(DesigoSensorId id, Instant lastUpdated) {
         trendsLastUpdated.put(id, lastUpdated);
     }
 
@@ -45,7 +45,16 @@ public class TrendsLastUpdatedRepository {
         return trendsLastFailed;
     }
 
-    public long getSize() {
+    public long countLastUpdatedSensors() {
         return trendsLastUpdated.size();
+    }
+
+    public long countLastFailedSensors() {
+        return trendsLastFailed.size();
+    }
+
+    public void clear() {
+        trendsLastUpdated.clear();
+        trendsLastFailed.clear();
     }
 }
