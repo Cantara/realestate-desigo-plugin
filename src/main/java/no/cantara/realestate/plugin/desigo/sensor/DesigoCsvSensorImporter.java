@@ -29,7 +29,6 @@ public class DesigoCsvSensorImporter extends CsvSensorImporter {
         CsvCollection collection = CsvReader.parse(filepath.toString());
         log.debug("ColumnNames: {}",collection.getColumnNames());
         for (Map<String, String> record : collection.getRecords()) {
-            //MetasysObjectReference,MetasysObjectId
             DesigoSensorId sensorId = new DesigoSensorId( record.get("DesigoId"),record.get("DesigoPropertyId"));
             if (record.containsKey("DesigoTrendId")) {
                 sensorId.setTrendId(record.get("DesigoTrendId"));

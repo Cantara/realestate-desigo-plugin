@@ -46,6 +46,12 @@
 
     <!-- Should be same as cloudconnector -->
     <dependency>
+      <groupId>no.cantara.realestate</groupId>
+      <artifactId>azure-client-java</artifactId>
+      <version>0.4.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>

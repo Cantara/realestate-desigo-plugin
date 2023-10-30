@@ -1,37 +1,34 @@
 package no.cantara.realestate.plugin.desigo.ingestion;
 
 import no.cantara.realestate.observations.ObservationListener;
-import no.cantara.realestate.observations.ObservedValue;
 import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
-import no.cantara.realestate.plugin.desigo.automationserver.DesigoPresentValue;
 import no.cantara.realestate.plugins.config.PluginConfig;
-import no.cantara.realestate.plugins.ingestion.PresentValueIngestionService;
+import no.cantara.realestate.plugins.ingestion.TrendsIngestionService;
 import no.cantara.realestate.plugins.notifications.NotificationListener;
 import no.cantara.realestate.security.LogonFailedException;
 import no.cantara.realestate.sensors.SensorId;
 import org.slf4j.Logger;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class DesigoPresentValueIngestionService implements PresentValueIngestionService {
-    private static final Logger log = getLogger(DesigoPresentValueIngestionService.class);
-    private PluginConfig config;
+public class DesigoTrendsIngestionService implements TrendsIngestionService {
+    private static final Logger log = getLogger(DesigoTrendsIngestionService.class);
     private ObservationListener observationListener;
     private NotificationListener notificationListener;
-    private boolean isInitialized = false;
     private DesigoApiClientRest desigoApiClient;
+    private PluginConfig config;
     private URI apiUri;
     private ArrayList<SensorId> sensorIds;
     private long numberOfMessagesImported = 0;
     private long numberOfMessagesFailed = 0;
+    private boolean isInitialized = false;
 
-    public DesigoPresentValueIngestionService() {
+    public DesigoTrendsIngestionService() {
         sensorIds = new ArrayList<>();
     }
 
@@ -43,44 +40,26 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
      * @param notificationListener
      * @param desigoApiClient
      */
-    protected DesigoPresentValueIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, DesigoApiClientRest desigoApiClient) {
+    protected DesigoTrendsIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, DesigoApiClientRest desigoApiClient) {
         this.config = config;
         this.observationListener = observationListener;
         this.notificationListener = notificationListener;
         this.desigoApiClient = desigoApiClient;
     }
-
     @Override
-    public void ingestPresentValues() {
-        log.debug("Ingesting present values from Desigo CC API {} using sensorIds {}", apiUri, sensorIds);
-        for (SensorId sensorId : sensorIds) {
-            try {
-                DesigoPresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
-                ObservedValue observedValue = new ObservedValue(sensorId, presentValue.getValue());
-                observedValue.setObservedAt(presentValue.getObservedAt());
-                observedValue.setReliable(presentValue.getReliable());
-                observationListener.observedValue(observedValue);
-            } catch (URISyntaxException e) {
-                log.error("Failed to get sensor observations from Desigo CC API {} using sensorId {}", apiUri, sensorId, e);
-                throw new DesigoCloudConnectorException("Could not get sensor observations from " + apiUri + ". URI is illegal", e);
-            } catch (LogonFailedException e) {
-                log.error("Failed to get sensor observations from Desigo CC API {} as logon failed. Please try to  calling " +
-                        "closeConnection(), then openConnection().", apiUri, e);
-                throw e;
-            }
-        }
-
+    public void ingestTrends() {
+        
     }
 
     @Override
     public String getName() {
-        return "DesigoPresentValueIngestionService";
+        return "DesigoTrendsIngestionService";
     }
 
     @Override
-    public boolean initialize(PluginConfig config) {
+    public boolean initialize(PluginConfig pluginConfig) {
         this.config = config;
-            String apiUrl = config.asString("sd.api.url", "http://<localhost>:<port>");
+        String apiUrl = config.asString("sd.api.url", "http://<localhost>:<port>");
         apiUri = URI.create(apiUrl);
         desigoApiClient = new DesigoApiClientRest(apiUri);
         isInitialized = true;

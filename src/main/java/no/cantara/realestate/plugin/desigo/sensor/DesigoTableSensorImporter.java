@@ -23,6 +23,7 @@ public class DesigoTableSensorImporter implements SensorImporter {
         this.tableRows = tableRows;
     }
 
+
     @Override
     public List<SensorId> importSensors(String sourceType) {
         List<SensorId> sensorIds = new ArrayList<>();

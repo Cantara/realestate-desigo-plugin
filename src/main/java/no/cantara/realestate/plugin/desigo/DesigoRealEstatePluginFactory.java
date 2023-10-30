@@ -3,6 +3,7 @@ package no.cantara.realestate.plugin.desigo;
 import no.cantara.realestate.RealEstateException;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionService;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionServiceSimulator;
+import no.cantara.realestate.plugin.desigo.ingestion.DesigoTrendsIngestionService;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoTrendsIngestionServiceSimulator;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingImporter;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingSimulator;
@@ -11,6 +12,7 @@ import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.distribution.DistributionService;
 import no.cantara.realestate.plugins.ingestion.IngestionService;
 import no.cantara.realestate.plugins.ingestion.PresentValueIngestionService;
+import no.cantara.realestate.plugins.ingestion.TrendsIngestionService;
 import no.cantara.realestate.plugins.sensormapping.PluginSensorMappingImporter;
 import org.slf4j.Logger;
 
@@ -74,16 +76,25 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
         if (useProdBasClient) {
             PresentValueIngestionService presentValueService = createPresentValueIngestionService();
             ingestionServices.add(presentValueService);
+            TrendsIngestionService trendsIngestionService = createTrendsIngestionService();
+            ingestionServices.add(trendsIngestionService);
         }
         return ingestionServices;
     }
 
-    private PresentValueIngestionService createPresentValueIngestionService() {
+    protected PresentValueIngestionService createPresentValueIngestionService() {
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
         PresentValueIngestionService presentValueService = new DesigoPresentValueIngestionService();
         return presentValueService;
+    }
+    protected TrendsIngestionService createTrendsIngestionService() {
+        if (config == null) {
+            throw new RealEstateException("Missing configuration. Please call initialize() first.");
+        }
+        TrendsIngestionService trendsIngestionService = new DesigoTrendsIngestionService();
+        return trendsIngestionService;
     }
 
     @Override
