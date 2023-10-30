@@ -31,8 +31,9 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
     private long numberOfMessagesImported = 0;
     private long numberOfMessagesFailed = 0;
 
-    public DesigoPresentValueIngestionService() {
+    public DesigoPresentValueIngestionService(DesigoApiClientRest desigoApiClient) {
         sensorIds = new ArrayList<>();
+        this.desigoApiClient = desigoApiClient;
     }
 
     /**
@@ -80,9 +81,19 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
     @Override
     public boolean initialize(PluginConfig config) {
         this.config = config;
-            String apiUrl = config.asString("sd.api.url", "http://<localhost>:<port>");
-        apiUri = URI.create(apiUrl);
-        desigoApiClient = new DesigoApiClientRest(apiUri);
+        try {
+            desigoApiClient.logon();
+        } catch (LogonFailedException lfe) {
+            String username = config.asString("sd.api.username", "admin");
+            String password = config.asString("sd.api.password", "admin");
+            try {
+                desigoApiClient.openConnection(username, password, notificationListener);
+            } catch (LogonFailedException e) {
+                log.error("Failed to logon to Desigo CC API {} using username {}", apiUri, username, e);
+                throw new DesigoCloudConnectorException("Could not open connection for " + getName() + " Logon failed to " + apiUri + ", using username: " + username, e);
+            }
+        }
+
         isInitialized = true;
         return true;
     }
@@ -94,19 +105,14 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
         if (!isInitialized) {
             throw new RuntimeException("Not initialized. Please call initialize() first.");
         }
-        String username = config.asString("sd.api.username", "admin");
-        String password = config.asString("sd.api.password", "admin");
-        try {
-            desigoApiClient.openConnection(username, password, notificationListener);
-        } catch (LogonFailedException e) {
-            log.error("Failed to logon to Desigo CC API {} using username {}", apiUri, username, e);
-            throw new DesigoCloudConnectorException("Could not open connection for " + getName() + " Logon failed to " + apiUri + ", using username: " + username, e);
-        }
+
+
     }
 
     @Override
     public void closeConnection() {
-        desigoApiClient = null;
+        observationListener = null;
+        notificationListener = null;
     }
 
     @Override

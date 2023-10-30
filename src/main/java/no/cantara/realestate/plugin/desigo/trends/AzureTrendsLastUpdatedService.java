@@ -80,14 +80,11 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     @Override
     public Instant getLastUpdatedAt(DesigoSensorId sensorId) {
         return null;
-
-
     }
 
     @Override
     public void setLastUpdatedAt(DesigoSensorId sensorId, Instant lastUpdatedAt) {
         repository.addLastUpdated(sensorId, lastUpdatedAt);
-
     }
 
     @Override
