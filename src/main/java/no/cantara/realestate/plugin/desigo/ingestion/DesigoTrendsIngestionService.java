@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static no.cantara.realestate.plugin.desigo.utils.DesigoConstants.auditLog;
+import static no.cantara.realestate.utils.StringUtils.hasValue;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class DesigoTrendsIngestionService implements TrendsIngestionService {
@@ -69,36 +71,47 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
         List<DesigoSensorId> updatedSensors = new ArrayList<>();
         List<DesigoSensorId> failedSensors = new ArrayList<>();
         for (SensorId sensorId : sensorIds) {
-            try {
-                String trendId = ((DesigoSensorId) sensorId).getTrendId();
-                Instant lastObservedAt = trendsLastUpdatedService.getLastUpdatedAt((DesigoSensorId) sensorId);
-                if (lastObservedAt == null) {
-                    lastObservedAt = Instant.now();
-                }
-                Set<? extends TrendSample> trendSamples = desigoApiClient.findTrendSamplesByDate(trendId, -1, -1, lastObservedAt.minusSeconds(600));
-                for (TrendSample trendValue : trendSamples) {
-                    trendValue = (DesigoTrendSample) trendValue;
-                    if (trendValue.getObservedAt() == null) {
-                        throw new RuntimeException("Not allowed");
+            String trendId = ((DesigoSensorId) sensorId).getTrendId();
+            if (hasValue(trendId)) {
+                auditLog.trace("Ingest__TrendFindSamples__{}__{}__{}", trendId, sensorId.getClass(), sensorId.getId());
+                try {
+                    Instant lastObservedAt = trendsLastUpdatedService.getLastUpdatedAt((DesigoSensorId) sensorId);
+                    auditLog.trace("Ingest__TrendLastUpdatedAt__{}__{}__{}__{}", trendId, sensorId.getClass(), sensorId.getId(), lastObservedAt);
+                    if (lastObservedAt == null) {
+                        lastObservedAt = Instant.now();
                     }
-                    ObservedValue observedValue = new ObservedValue(sensorId, trendValue.getValue());
-                    observedValue.setObservedAt(trendValue.getObservedAt());
-                    observationListener.observedValue(observedValue);
-                    numberOfMessagesImported++;
-                    trendsLastUpdatedService.setLastUpdatedAt((DesigoSensorId) sensorId, trendValue.getObservedAt());
+                    Set<? extends TrendSample> trendSamples = desigoApiClient.findTrendSamplesByDate(trendId, -1, -1, lastObservedAt.minusSeconds(600));
+                    if (trendSamples != null && trendSamples.size() > 0) {
+                        auditLog.trace("Ingest__TrendSamplesFound__{}__{}__{}__{}", trendId, sensorId.getClass(), sensorId.getId(), trendSamples.size());
+                    } else {
+                        auditLog.trace("Ingest__TrendSamplesFound__{}__{}__{}__{}", trendId, sensorId.getClass(), sensorId.getId(), 0);
+                    }
+                    for (TrendSample trendValue : trendSamples) {
+                        trendValue = (DesigoTrendSample) trendValue;
+                        ObservedValue observedValue = new ObservedValue(sensorId, trendValue.getValue());
+                        if (trendValue.getObservedAt() != null) {
+                            observedValue.setObservedAt(trendValue.getObservedAt());
+                        }
+                        auditLog.trace("Ingest__TrendObserved__{}__{}__{}__{}__{}", trendId, observedValue.getClass(), observedValue.getSensorId().getId(), observedValue.getValue(), observedValue.getObservedAt());
+                        observationListener.observedValue(observedValue);
+                        numberOfMessagesImported++;
+                        trendsLastUpdatedService.setLastUpdatedAt((DesigoSensorId) sensorId, trendValue.getObservedAt());
+                    }
+                    updatedSensors.add((DesigoSensorId) sensorId);
+                } catch (LogonFailedException e) {
+                    numberOfMessagesFailed++;
+                    trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
+                    failedSensors.add((DesigoSensorId) sensorId);
+                    log.error("Failed to logon to Desigo CC API {} using username {}", apiUrl, config.asString("sd.api.username", "admin"), e);
+                    throw new DesigoCloudConnectorException("Could not ingest trends for " + getName() + " Logon failed to " + apiUrl + ", using username: " + config.asString("sd.api.username", "admin"), e);
+                } catch (URISyntaxException e) {
+                    numberOfMessagesFailed++;
+                    trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
+                    failedSensors.add((DesigoSensorId) sensorId);
+                    throw new RuntimeException(e);
                 }
-                updatedSensors.add((DesigoSensorId) sensorId);
-            } catch (LogonFailedException e) {
-                numberOfMessagesFailed++;
-                trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
-                failedSensors.add((DesigoSensorId) sensorId);
-                log.error("Failed to logon to Desigo CC API {} using username {}", apiUrl, config.asString("sd.api.username", "admin"), e);
-                throw new DesigoCloudConnectorException("Could not ingest trends for " + getName() + " Logon failed to " + apiUrl + ", using username: " + config.asString("sd.api.username", "admin"), e);
-            } catch (URISyntaxException e) {
-                numberOfMessagesFailed++;
-                trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
-                failedSensors.add((DesigoSensorId) sensorId);
-                throw new RuntimeException(e);
+            } else {
+                auditLog.trace("Ingest__TrendIdMissing__{}__{}__{}__{}__{}", sensorId.getClass(), sensorId.getId(), ((DesigoSensorId) sensorId).getDesigoPropertyId());
             }
         }
         trendsLastUpdatedService.persistLastUpdated(updatedSensors);
@@ -130,7 +143,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                 }
                 initializationOk = true;
             } else if (desigoApiClient instanceof SdClientSimulator) {
-                ((SdClientSimulator)desigoApiClient).openConnection(null, null, notificationListener);
+                ((SdClientSimulator) desigoApiClient).openConnection(null, null, notificationListener);
                 initializationOk = true;
             }
         }
