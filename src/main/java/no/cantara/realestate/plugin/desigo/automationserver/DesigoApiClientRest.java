@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import static no.cantara.realestate.plugin.desigo.DesigoRealEstatePluginFactory.PLUGIN_ID;
+import static no.cantara.realestate.utils.StringUtils.hasValue;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class DesigoApiClientRest implements BasClient {
@@ -351,6 +352,9 @@ public class DesigoApiClientRest implements BasClient {
         logon(username, password);
     }
     protected void logon(String username, String password) throws LogonFailedException {
+        if (!hasValue(username)) {
+            throw new LogonFailedException("Username is null. Please call openConnection(username, password) first.");
+        }
         log.trace("Logon: {}", username);
         CloseableHttpClient httpClient = HttpClients.createDefault();
         String loginUri = apiUri + "token";
