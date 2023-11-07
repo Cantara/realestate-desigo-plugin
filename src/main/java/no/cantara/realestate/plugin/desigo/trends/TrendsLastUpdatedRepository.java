@@ -57,4 +57,8 @@ public class TrendsLastUpdatedRepository {
         trendsLastUpdated.clear();
         trendsLastFailed.clear();
     }
+
+    public Instant getLastUpdated(DesigoSensorId sensorId) {
+        return trendsLastUpdated.get(sensorId);
+    }
 }

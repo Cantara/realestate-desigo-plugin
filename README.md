@@ -7,3 +7,8 @@ Run [ManualPluginFactoryTest](src/test/java/com/github/robindevilliers/welcometo
 
 ## Build
 Run `mvn clean install` from the command line.
+
+## Configuration
+```
+Desigo.ingestionServices.simulator.enabled=true
+```

@@ -1,10 +1,13 @@
 package no.cantara.realestate.plugin.desigo.ingestion;
 
+import no.cantara.realestate.automationserver.BasClient;
 import no.cantara.realestate.observations.ObservationListener;
 import no.cantara.realestate.observations.ObservedValue;
+import no.cantara.realestate.observations.PresentValue;
 import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoPresentValue;
+import no.cantara.realestate.plugin.desigo.automationserver.SdClientSimulator;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.ingestion.PresentValueIngestionService;
 import no.cantara.realestate.plugins.notifications.NotificationListener;
@@ -25,13 +28,13 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
     private ObservationListener observationListener;
     private NotificationListener notificationListener;
     private boolean isInitialized = false;
-    private DesigoApiClientRest desigoApiClient;
+    private BasClient desigoApiClient;
     private URI apiUri;
     private ArrayList<SensorId> sensorIds;
     private long numberOfMessagesImported = 0;
     private long numberOfMessagesFailed = 0;
 
-    public DesigoPresentValueIngestionService(DesigoApiClientRest desigoApiClient) {
+    public DesigoPresentValueIngestionService(BasClient desigoApiClient) {
         sensorIds = new ArrayList<>();
         this.desigoApiClient = desigoApiClient;
     }
@@ -56,7 +59,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
         log.debug("Ingesting present values from Desigo CC API {} using sensorIds {}", apiUri, sensorIds);
         for (SensorId sensorId : sensorIds) {
             try {
-                DesigoPresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
+                PresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
                 ObservedValue observedValue = new ObservedValue(sensorId, presentValue.getValue());
                 observedValue.setObservedAt(presentValue.getObservedAt());
                 observedValue.setReliable(presentValue.getReliable());
@@ -81,21 +84,27 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
     @Override
     public boolean initialize(PluginConfig config) {
         this.config = config;
-        try {
-            desigoApiClient.logon();
-        } catch (LogonFailedException lfe) {
-            String username = config.asString("sd.api.username", "admin");
-            String password = config.asString("sd.api.password", "admin");
-            try {
-                desigoApiClient.openConnection(username, password, notificationListener);
-            } catch (LogonFailedException e) {
-                log.error("Failed to logon to Desigo CC API {} using username {}", apiUri, username, e);
-                throw new DesigoCloudConnectorException("Could not open connection for " + getName() + " Logon failed to " + apiUri + ", using username: " + username, e);
-            }
-        }
+        boolean initializationOk = false;
+        if (desigoApiClient != null && !desigoApiClient.isHealthy()) {
+            if (desigoApiClient instanceof DesigoApiClientRest) {
+                String username = config.asString("sd.api.username", "admin");
+                String password = config.asString("sd.api.password", "admin");
+                try {
+                    ((DesigoApiClientRest) desigoApiClient).openConnection(username, password, notificationListener);
 
-        isInitialized = true;
-        return true;
+                } catch (LogonFailedException e) {
+                    log.error("Failed to logon to Desigo CC API {} using username {}", apiUri, username, e);
+                    throw new DesigoCloudConnectorException("Could not open connection for " + getName() + " Logon failed to " + apiUri + ", using username: " + username, e);
+                }
+                initializationOk = true;
+            } else if (desigoApiClient instanceof SdClientSimulator) {
+                initializationOk = true;
+            }
+
+        }
+        isInitialized = initializationOk;
+
+        return initializationOk;
     }
 
     @Override

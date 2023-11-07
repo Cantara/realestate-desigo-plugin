@@ -29,7 +29,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     /*
     Used for testing
      */
-    protected AzureTrendsLastUpdatedService(PluginConfig config, TrendsLastUpdatedRepository repository, AzureTableClient lastUpdatedClient, AzureTableClient lastFailedClient) {
+    public AzureTrendsLastUpdatedService(PluginConfig config, TrendsLastUpdatedRepository repository, AzureTableClient lastUpdatedClient, AzureTableClient lastFailedClient) {
         this.config = config;
         this.repository = repository;
         this.lastUpdatedClient = lastUpdatedClient;
@@ -67,7 +67,6 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         //trends.lastupdated.partitionKey=Desigo
         String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
         if (lastUpdatedClient == null) {
-
             String tableName = config.asString("trends.lastupdated.tableName", null);
             lastUpdatedClient = new AzureTableClient(connectionString, tableName);
         }
@@ -79,23 +78,24 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
 
     @Override
     public Instant getLastUpdatedAt(DesigoSensorId sensorId) {
-        return null;
+        return repository.getLastUpdated(sensorId);
     }
 
     @Override
     public void setLastUpdatedAt(DesigoSensorId sensorId, Instant lastUpdatedAt) {
-        repository.addLastUpdated(sensorId, lastUpdatedAt);
+        repository.updateUpdatedIfNullOrNewer(sensorId, lastUpdatedAt);
     }
 
     @Override
     public void setLastFailedAt(DesigoSensorId sensorId, Instant lastFailedAt) {
-        repository.addLastFailed(sensorId, lastFailedAt);
+        repository.updateUpdatedIfNullOrNewer(sensorId, lastFailedAt);
     }
 
     @Override
     public void persistLastUpdated(List<DesigoSensorId> sensorIds) {
         String partitionKey = config.asString("trends.lastupdated.partitionKey", "Desigo");
         for (DesigoSensorId sensorId : sensorIds) {
+            Instant hei = repository.getLastUpdated(sensorId);
             Instant lastUpdatedAt = repository.getTrendsLastUpdated().get(sensorId);
             if (lastUpdatedAt != null) {
                 String rowKey = sensorId.getTrendId();

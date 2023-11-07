@@ -122,6 +122,11 @@ public class DesigoTrendSample extends TrendSample {
     }
 
     @Override
+    public Instant getObservedAt() {
+        return sampleDate;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

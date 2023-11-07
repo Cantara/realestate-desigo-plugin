@@ -85,7 +85,7 @@ public class DesigoApiClientRest implements BasClient {
 
 
     @Override
-    public Set<DesigoTrendSample> findTrendSamplesByDate(String trendId, int take, int skip, Instant onAndAfterDateTime) throws URISyntaxException, LogonFailedException {
+    public Set<TrendSample> findTrendSamplesByDate(String trendId, int take, int skip, Instant onAndAfterDateTime) throws URISyntaxException, LogonFailedException {
 
         String bearerToken = findAccessToken();
         URI samplesUri = new URI(apiUri + "trendseries/" + trendId);

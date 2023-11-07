@@ -1,13 +1,19 @@
 package no.cantara.realestate.plugin.desigo;
 
 import no.cantara.realestate.RealEstateException;
+import no.cantara.realestate.automationserver.BasClient;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
+import no.cantara.realestate.plugin.desigo.automationserver.SdClientSimulator;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionService;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionServiceSimulator;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoTrendsIngestionService;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoTrendsIngestionServiceSimulator;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingImporter;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingSimulator;
+import no.cantara.realestate.plugin.desigo.trends.AzureTrendsLastUpdatedService;
+import no.cantara.realestate.plugin.desigo.trends.InMemoryTrendsLastUpdatedService;
+import no.cantara.realestate.plugin.desigo.trends.TrendsLastUpdatedRepository;
+import no.cantara.realestate.plugin.desigo.trends.TrendsLastUpdatedService;
 import no.cantara.realestate.plugins.RealEstatePluginFactory;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.distribution.DistributionService;
@@ -28,7 +34,7 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
     private PluginConfig config = null;
     public static String PLUGIN_ID = "Desigo";
     private URI apiUri;
-    private DesigoApiClientRest desigoApiClient;
+    private BasClient desigoApiClient;
 
     @Override
     public String getId() {
@@ -48,6 +54,18 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
     @Override
     public void initialize(PluginConfig pluginConfig) {
         this.config = pluginConfig;
+        boolean useProdBasClient = config.asBoolean("sd.api.prod", false);
+        boolean useBasSimulator = config.asBoolean("sdclient.simulator.enabled", false);
+        if (useProdBasClient) {
+            log.info("Using production Desigo API client");
+            String apiUrl = config.asString("sd.api.url", "http://<localhost>:<port>");
+            apiUri = URI.create(apiUrl);
+            desigoApiClient = new DesigoApiClientRest(apiUri);
+
+        } else if (useBasSimulator) {
+            log.info("Using Desigo BAS client simulator");
+            desigoApiClient = new SdClientSimulator();
+        }
     }
 
     @Override
@@ -71,36 +89,58 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
-        boolean useSimulators = config.asBoolean("sensormappings.simulator.enabled", false);
+        boolean useSimulators = config.asBoolean("ingestionServices.simulator.enabled", false);
         if (useSimulators) {
             ingestionServices.add(new DesigoPresentValueIngestionServiceSimulator());
+            log.info("Added DesigoPresentValueIngestionServiceSimulator");
             ingestionServices.add(new DesigoTrendsIngestionServiceSimulator());
-        }
-        boolean useProdBasClient = config.asBoolean("sd.api.prod", false);
-        if (useProdBasClient) {
-            String apiUrl = config.asString("sd.api.url", "http://<localhost>:<port>");
-            apiUri = URI.create(apiUrl);
-            desigoApiClient = new DesigoApiClientRest(apiUri);
+            log.info("Added DesigoTrendsIngestionServiceSimulator");
+        } else {
+            if (desigoApiClient == null) {
+                throw new RealEstateException("Missing DesigoApiClient. Please call initialize() first.");
+            }
             PresentValueIngestionService presentValueService = createPresentValueIngestionService(desigoApiClient);
             ingestionServices.add(presentValueService);
-            TrendsIngestionService trendsIngestionService = createTrendsIngestionService(desigoApiClient);
+            log.info("Added DesigoPresentValueIngestionService");
+            TrendsLastUpdatedService trendsLastUpdatedService = createTrendsLastUpdatedService(config);
+            TrendsIngestionService trendsIngestionService = createTrendsIngestionService(desigoApiClient, trendsLastUpdatedService);
             ingestionServices.add(trendsIngestionService);
+            log.info("Added DesigoTrendsIngestionService");
         }
         return ingestionServices;
     }
 
-    protected PresentValueIngestionService createPresentValueIngestionService(DesigoApiClientRest desigoApiClient) {
+    protected TrendsLastUpdatedService createTrendsLastUpdatedService(PluginConfig config) {
+        if (config == null) {
+            throw new RealEstateException("Missing configuration. Please call initialize() first.");
+        }
+        TrendsLastUpdatedService lastUpdatedService = null;
+        boolean useInMemory = config.asBoolean("lastUpdated.inMemory", false);
+        boolean useAzure = config.asBoolean("lastUpdated.azure", false);
+        boolean useCsv = config.asBoolean("lastUpdated.csv", false);
+        if (useInMemory) {
+            lastUpdatedService = new InMemoryTrendsLastUpdatedService();
+        } else if (useAzure) {
+            TrendsLastUpdatedRepository repository = new TrendsLastUpdatedRepository();
+            lastUpdatedService = new  AzureTrendsLastUpdatedService(config, repository);
+        } else if (useCsv) {
+            throw new RealEstateException("CSV not implemented yet");
+        }
+        return lastUpdatedService;
+    }
+
+    protected PresentValueIngestionService createPresentValueIngestionService(BasClient desigoApiClient) {
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
         PresentValueIngestionService presentValueService = new DesigoPresentValueIngestionService(desigoApiClient);
         return presentValueService;
     }
-    protected TrendsIngestionService createTrendsIngestionService(DesigoApiClientRest desigoApiClient) {
+    protected TrendsIngestionService createTrendsIngestionService(BasClient desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService) {
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
-        TrendsIngestionService trendsIngestionService = new DesigoTrendsIngestionService(desigoApiClient);
+        TrendsIngestionService trendsIngestionService = new DesigoTrendsIngestionService(desigoApiClient, trendsLastUpdatedService);
         return trendsIngestionService;
     }
 

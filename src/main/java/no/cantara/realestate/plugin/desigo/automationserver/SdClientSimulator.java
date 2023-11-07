@@ -1,8 +1,11 @@
 package no.cantara.realestate.plugin.desigo.automationserver;
 
 import no.cantara.realestate.automationserver.BasClient;
+import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingSimulator;
+import no.cantara.realestate.plugins.notifications.NotificationListener;
 import no.cantara.realestate.security.LogonFailedException;
 import no.cantara.realestate.security.UserToken;
+import no.cantara.realestate.sensors.MappedSensorId;
 import no.cantara.realestate.sensors.SensorId;
 import no.cantara.realestate.sensors.desigo.DesigoSensorId;
 import org.slf4j.Logger;
@@ -10,9 +13,7 @@ import org.slf4j.Logger;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static no.cantara.realestate.utils.UrlEncoder.urlEncode;
@@ -21,18 +22,30 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class SdClientSimulator implements BasClient {
 
     private static final Logger log = getLogger(SdClientSimulator.class);
-    private Map<String, Map<Instant, DesigoTrendSample>> simulatedSDApiData = new ConcurrentHashMap();
+    private Map<String, List<DesigoTrendSample>> simulatedSDApiData = new ConcurrentHashMap();
     boolean scheduled_simulator_started = true;
     private final int SECONDS_BETWEEN_SCHEDULED_IMPORT_RUNS = 3;
-
     private Set<String> simulatedTrendIds = new HashSet<>();
     private long numberOfTrendSamplesReceived = 0;
+    private boolean isHealty = false;
 
 
     public SdClientSimulator() {
         log.info("SD Rest API Simulator started");
         scheduled_simulator_started = false;
         initializeMapAndStartSimulation();
+    }
+
+    /**
+     * Add TrendId's used for simulation here, or in DesigoSensorMappingSimulator
+     */
+    private void initializeMapAndStartSimulation() {
+        List<MappedSensorId> mappedSensors = DesigoSensorMappingSimulator.getSimulatedSensors();
+        for (MappedSensorId mappedSensor : mappedSensors) {
+            DesigoSensorId sensorId = (DesigoSensorId) mappedSensor.getSensorId();
+            simulatedTrendIds.add(sensorId.getTrendId());
+        }
+        startScheduledSimulationOfTrendValues();
     }
 
     @Override
@@ -50,16 +63,12 @@ public class SdClientSimulator implements BasClient {
 
     @Override
     public Set<DesigoTrendSample> findTrendSamples(String bearerToken, String trendId) throws URISyntaxException {
-        String prefixedUrlEncodedTrendId = encodeAndPrefix(trendId);
-        Instant i = Instant.now().minus(1, ChronoUnit.DAYS);
         Set<DesigoTrendSample> trendSamples = new HashSet<>();
-        Map<Instant, DesigoTrendSample> trendTimeSamples = simulatedSDApiData.get(prefixedUrlEncodedTrendId);
-        for (Instant t : trendTimeSamples.keySet()) {
-            if (t.isAfter(i)) {
-                trendSamples.add(trendTimeSamples.get(t));
-                addNumberOfTrendSamplesReceived();
-            }
+        List<DesigoTrendSample> trendSamplesList = simulatedSDApiData.get(trendId);
+        if (trendSamplesList != null) {
+            trendSamples.addAll(trendSamplesList);
         }
+
         log.info("findTrendSamples returned:{} trendSamples", trendSamples.size());
         return trendSamples;
     }
@@ -74,20 +83,7 @@ public class SdClientSimulator implements BasClient {
 
     @Override
     public Set<DesigoTrendSample> findTrendSamples(String trendId, int take, int skip) throws URISyntaxException {
-        String prefixedUrlEncodedTrendId = encodeAndPrefix(trendId);
-        Instant i = Instant.now().minus(1, ChronoUnit.DAYS);
-        Set<DesigoTrendSample> trendSamples = new HashSet<>();
-        Map<Instant, DesigoTrendSample> trendTimeSamples = simulatedSDApiData.get(prefixedUrlEncodedTrendId);
-        int count = 0;
-        for (Instant t : trendTimeSamples.keySet()) {
-            if (t.isAfter(i)) {
-                trendSamples.add(trendTimeSamples.get(t));
-                count++;
-                if (count > take) {
-                    break;
-                }
-            }
-        }
+        Set<DesigoTrendSample> trendSamples = findTrendSamples(null, trendId);
         log.info("findTrendSamples returned:{} trendSamples", trendSamples.size());
 
         return trendSamples;
@@ -95,15 +91,13 @@ public class SdClientSimulator implements BasClient {
 
     @Override
     public Set<DesigoTrendSample> findTrendSamplesByDate(String trendId, int take, int skip, Instant onAndAfterDateTime) throws URISyntaxException {
-        String prefixedUrlEncodedTrendId = encodeAndPrefix(trendId);
-        Instant i = onAndAfterDateTime;
         Set<DesigoTrendSample> trendSamples = new HashSet<>();
-        Map<Instant, DesigoTrendSample> trendTimeSamples = simulatedSDApiData.get(prefixedUrlEncodedTrendId);
+        List<DesigoTrendSample> trendTimeSamples = simulatedSDApiData.get(trendId);
         int count = 0;
         if (trendTimeSamples != null) {
-            for (Instant t : trendTimeSamples.keySet()) {
-                if (t.isAfter(i)) {
-                    trendSamples.add(trendTimeSamples.get(t));
+            for (DesigoTrendSample trendTimeSample : trendTimeSamples) {
+                if (trendTimeSample.getSampleDate().isAfter(onAndAfterDateTime)) {
+                    trendSamples.add(trendTimeSample);
                     count++;
                     if (count > take) {
                         break;
@@ -134,20 +128,6 @@ public class SdClientSimulator implements BasClient {
         }
     }
 
-    private void initializeMapAndStartSimulation() {
-        simulatedTrendIds.add("208540b1-ab8a-566a-8a41-8b4cee515baf");
-        simulatedTrendIds.add("2a15fea2-a196-566b-9d69-d2abcd86a1d8");
-        simulatedTrendIds.add("42061ba5-0f0a-5892-aa28-d33b96e8bed5");
-        simulatedTrendIds.add("8413788b-b8b5-5f23-afde-b659740c74b6");
-        /*
-        log.info("Initializing TrendValue dataset");
-        for (int n = 0; n < 500; n++) {
-            simulateSensorReadings();
-        }
-        */
-        startScheduledSimulationOfTrendValues();
-    }
-
     private void startScheduledSimulationOfTrendValues() {
         if (!scheduled_simulator_started) {
             scheduled_simulator_started = true;
@@ -171,7 +151,7 @@ public class SdClientSimulator implements BasClient {
         simulatedTrendIds.add(trendId);
     }
 
-    private void simulateSensorReadings() {
+    public void simulateSensorReadings() {
 //        log.info("starting SD Sensor simulator run");
 
         for (String trendid : simulatedTrendIds) {
@@ -197,19 +177,20 @@ public class SdClientSimulator implements BasClient {
         return 202;
     }
 
-    private void addSimulatedSDTrendSample(String trendId) {
-        DesigoTrendSample ts = new DesigoTrendSample();
-        ts.setTrendId(trendId);
-        Instant ti = Instant.now();
-        ts.setTimestamp(ti.toString());
+    protected void addSimulatedSDTrendSample(String trendId) {
+        DesigoTrendSample trendSample = new DesigoTrendSample();
+        trendSample.setTrendId(trendId);
+        Instant observedAt = Instant.now();
+        trendSample.setTimestamp(observedAt.toString());
         Integer randomValue = ThreadLocalRandom.current().nextInt(50);
-        ts.setValue(randomValue.toString());
-        Map<Instant, DesigoTrendSample> tsMap = simulatedSDApiData.get(trendId);
-        if (tsMap == null) {
-            tsMap = new ConcurrentHashMap<>();
+        trendSample.setValue(randomValue.toString());
+        List<DesigoTrendSample> trendSimulations = simulatedSDApiData.get(trendId);
+        if (trendSimulations == null) {
+            trendSimulations = new ArrayList<>();
         }
-        simulatedSDApiData.put(trendId.toString(), tsMap);
-        tsMap.put(ti, ts);
+        trendSimulations.add(trendSample);
+        simulatedSDApiData.put(trendId, trendSimulations);
+
 //        log.info("   - added trendSample for {} - new size: {}", trendId, tsMap.size());
     }
 
@@ -226,7 +207,7 @@ public class SdClientSimulator implements BasClient {
 
     @Override
     public boolean isHealthy() {
-        return true;
+        return isHealty;
     }
 
     @Override
@@ -237,5 +218,9 @@ public class SdClientSimulator implements BasClient {
     @Override
     public UserToken getUserToken() {
         return new UserToken();
+    }
+
+    public void openConnection(String username, String password, NotificationListener notificationListener) {
+        isHealty = true;
     }
 }

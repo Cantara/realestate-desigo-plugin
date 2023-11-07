@@ -28,12 +28,18 @@ public class DesigoSensorMappingSimulator extends PluginSensorMappingImporter {
         log.warn("Using simulated SensorId's");
         List<MappedSensorId> mappedSensorIds = new ArrayList<>();
         SensorId simulatedCo2Sensor = new DesigoSensorId("desigoId1", "desigoPropertyId1");
+        ((DesigoSensorId) simulatedCo2Sensor).setTrendId("System1:GmsDevice_2_1212052_83886086.general.DataCo2:_offline.._value");
         MappedSensorId mappedSimulatedCo2Sensor = new MappedSensorId(simulatedCo2Sensor, buildRecStub("room1", SensorType.co2));
         SensorId simulatedTempSensor = new DesigoSensorId("desigoId2", "desigoPropertyId2");
+        ((DesigoSensorId) simulatedTempSensor).setTrendId("System1:GmsDevice_2_1212052_83886086.general.DataTemp:_offline.._value");
         MappedSensorId mappedSimulatedTempSensor = new MappedSensorId(simulatedTempSensor, buildRecStub("room1", SensorType.temp));
         mappedSensorIds.add(mappedSimulatedCo2Sensor);
         mappedSensorIds.add(mappedSimulatedTempSensor);
         return mappedSensorIds;
+    }
+    public static List<MappedSensorId> getSimulatedSensors() {
+        DesigoSensorMappingSimulator simulator = new DesigoSensorMappingSimulator(null);
+        return simulator.importSensorMappings();
     }
     public static SensorRecObject buildRecStub(String roomName, SensorType sensorType) {
         SensorRecObject recObject = new SensorRecObject(UUID.randomUUID().toString());
