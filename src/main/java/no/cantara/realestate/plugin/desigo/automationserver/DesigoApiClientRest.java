@@ -65,6 +65,12 @@ public class DesigoApiClientRest implements BasClient {
         this.apiUri = apiUri;
     }
 
+    public DesigoApiClientRest(URI apiUri, String username, String password) {
+        this.apiUri = apiUri;
+        this.username = username;
+        this.password = password;
+    }
+
     public void openConnection(String username, String password, NotificationListener notificationListener) throws LogonFailedException {
         this.username = username;
         this.password = password;
@@ -348,11 +354,11 @@ public class DesigoApiClientRest implements BasClient {
 
     @Override
     public void logon() throws LogonFailedException {
-
         logon(username, password);
     }
     protected void logon(String username, String password) throws LogonFailedException {
         if (!hasValue(username)) {
+            log.warn("Trying to logon with username null. Please call openConnection(username, password) first.");
             throw new LogonFailedException("Username is null. Please call openConnection(username, password) first.");
         }
         log.trace("Logon: {}", username);

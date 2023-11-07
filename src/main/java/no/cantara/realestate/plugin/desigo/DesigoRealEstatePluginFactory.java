@@ -60,7 +60,9 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
             log.info("Using production Desigo API client");
             String apiUrl = config.asString("sd.api.url", "http://<localhost>:<port>");
             apiUri = URI.create(apiUrl);
-            desigoApiClient = new DesigoApiClientRest(apiUri);
+            String username = config.asString("sd.api.username", "admin");
+            String password = config.asString("sd.api.password", "admin");
+            desigoApiClient = new DesigoApiClientRest(apiUri, username, password);
 
         } else if (useBasSimulator) {
             log.info("Using Desigo BAS client simulator");
