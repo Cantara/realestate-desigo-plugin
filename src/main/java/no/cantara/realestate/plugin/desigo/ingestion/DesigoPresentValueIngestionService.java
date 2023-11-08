@@ -83,6 +83,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
 
     @Override
     public boolean initialize(PluginConfig config) {
+        log.trace("DesigoPresentValueIngestionService.initialize");
         this.config = config;
         boolean initializationOk = false;
         if (desigoApiClient != null && !desigoApiClient.isHealthy()) {
@@ -100,7 +101,12 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
             } else if (desigoApiClient instanceof SdClientSimulator) {
                 initializationOk = true;
             }
-
+        } else if (desigoApiClient == null) {
+            log.warn("DesigoApiClient is null. {}", desigoApiClient);
+            initializationOk = false;
+        } else if (desigoApiClient.isHealthy()) {
+            log.trace("DesigoApiClient is healthy. {}", desigoApiClient);
+            initializationOk = true;
         }
         isInitialized = initializationOk;
 

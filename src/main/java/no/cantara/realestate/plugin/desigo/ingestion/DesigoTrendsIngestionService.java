@@ -156,6 +156,12 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                 ((SdClientSimulator) desigoApiClient).openConnection(null, null, notificationListener);
                 initializationOk = true;
             }
+        } else if (desigoApiClient == null) {
+            log.warn("DesigoApiClient is null. {}", desigoApiClient);
+            initializationOk = false;
+        } else if (desigoApiClient.isHealthy()) {
+            log.trace("DesigoApiClient is healthy. {}", desigoApiClient);
+            initializationOk = true;
         }
         isInitialized = initializationOk;
 
