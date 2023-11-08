@@ -145,7 +145,7 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
         TrendsIngestionService trendsIngestionService = new DesigoTrendsIngestionService(desigoApiClient, trendsLastUpdatedService);
-        log.info("Created TrendsIngestionService: {}", trendsIngestionService);
+        log.info("Created TrendsIngestionService: {} with desigoApiClient {} and trendsLastUpdatedService {}", trendsIngestionService, desigoApiClient, trendsLastUpdatedService);
         return trendsIngestionService;
     }
 
