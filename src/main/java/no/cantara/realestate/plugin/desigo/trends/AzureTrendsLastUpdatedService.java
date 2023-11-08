@@ -90,6 +90,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         if (lastUpdatedClient == null) {
             String tableName = config.asString("trends.lastupdated.tableName", null);
             lastUpdatedClient = new AzureTableClient(connectionString, tableName);
+            log.info("Initialized lastUpdatedClient {} with tableName {}", lastUpdatedClient, tableName);
         }
         if (lastFailedClient == null) {
             String tableName = config.asString("trends.lastFailed.tableName", null);
