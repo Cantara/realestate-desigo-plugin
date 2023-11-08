@@ -60,25 +60,29 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         isHealthy = true;
         String partitionKey = config.asString("trends.lastupdated.partitionKey", "Desigo");
         lastUpdatedClient.listRows(partitionKey).forEach(tableEntity -> {
-            String trendId = tableEntity.get("RowKey");
-            String id = tableEntity.get("DigitalTwinSensorId");
-            String desigoObjectId = tableEntity.get("DesigoId");
-            String desigoPropertyId = tableEntity.get("DesigoPropertyId");
-            String lastUpdatedAtString = tableEntity.get("LastUpdatedAt");
-            Instant lastUpdatedAt = null;
-            if (lastUpdatedAtString != null && ! lastUpdatedAtString.isEmpty()) {
-                try {
-                    Instant.parse(lastUpdatedAtString);
-                } catch (Exception e) {
-                    log.warn("Could not parse lastUpdatedAtString: {}", lastUpdatedAtString, e);
-                }
-            }
-            DesigoSensorId sensorId = new DesigoSensorId(desigoObjectId, desigoPropertyId);
-            sensorId.setId(id);
-            sensorId.setTrendId(trendId);
-            repository.addLastUpdated(sensorId, lastUpdatedAt);
+            updateRepository(tableEntity);
         });
         isHealthy = true;
+    }
+
+    protected void updateRepository(Map<String, String> tableEntity) {
+        String trendId = tableEntity.get("RowKey");
+        String id = tableEntity.get("DigitalTwinSensorId");
+        String desigoObjectId = tableEntity.get("DesigoId");
+        String desigoPropertyId = tableEntity.get("DesigoPropertyId");
+        String lastUpdatedAtString = tableEntity.get("LastUpdatedAt");
+        Instant lastUpdatedAt = null;
+        if (lastUpdatedAtString != null && ! lastUpdatedAtString.isEmpty()) {
+            try {
+                lastUpdatedAt = Instant.parse(lastUpdatedAtString);
+            } catch (Exception e) {
+                log.trace("Could not parse lastUpdatedAtString: {} for RowKey {}. objectId.propertyId {}.{}", lastUpdatedAtString, trendId, desigoObjectId, desigoPropertyId, e);
+            }
+        }
+        DesigoSensorId sensorId = new DesigoSensorId(desigoObjectId, desigoPropertyId);
+        sensorId.setId(id);
+        sensorId.setTrendId(trendId);
+        repository.addLastUpdated(sensorId, lastUpdatedAt);
     }
 
     void verifyOrInitializeAzureTableClients() {

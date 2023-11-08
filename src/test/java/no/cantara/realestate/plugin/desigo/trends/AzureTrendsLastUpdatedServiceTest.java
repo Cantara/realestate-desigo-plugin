@@ -11,9 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
@@ -102,5 +100,20 @@ class AzureTrendsLastUpdatedServiceTest {
         trendsLastUpdatedService.persistLastFailed(sensorIds);
         assertEquals(1, trendsLastUpdatedRepository.countLastFailedSensors());
         verify(tableClient, times(1)).updateEntity(isA(TableEntity.class));
+    }
+
+    @Test
+    void updateRepositoryTest() {
+        assertEquals(0, trendsLastUpdatedRepository.countLastUpdatedSensors());
+        assertEquals(0, trendsLastUpdatedRepository.countLastFailedSensors());
+        Map<String, String> tableEntry = new HashMap<>();
+        tableEntry.put("RowKey", "RK1");
+        tableEntry.put("DigitalTwinSensorId", "id1");
+        tableEntry.put("DesigoId", "des1");
+        tableEntry.put("DesigoPropertyId", "prop1");
+        tableEntry.put("LastUpdatedAt", "2020-01-01T00:00Z");
+        trendsLastUpdatedService.updateRepository(tableEntry);
+        assertEquals(1, trendsLastUpdatedRepository.countLastUpdatedSensors());
+        assertEquals(0, trendsLastUpdatedRepository.countLastFailedSensors());
     }
 }
