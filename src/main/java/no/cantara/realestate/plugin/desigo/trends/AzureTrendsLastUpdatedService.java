@@ -2,11 +2,13 @@ package no.cantara.realestate.plugin.desigo.trends;
 
 import no.cantara.realestate.azure.storage.AzureStorageTablesClient;
 import no.cantara.realestate.azure.storage.AzureTableClient;
+import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.sensors.desigo.DesigoSensorId;
 import org.slf4j.Logger;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +21,8 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
 
     private AzureTableClient lastUpdatedClient;
     private AzureTableClient lastFailedClient;
+    private boolean isHealthy;
+    private List<String> currentErrors = new ArrayList<>();
 
 
     public AzureTrendsLastUpdatedService(PluginConfig config, TrendsLastUpdatedRepository repository) {
@@ -39,6 +43,21 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     @Override
     public void readLastUpdated() {
         verifyOrInitializeAzureTableClients();
+        if (lastUpdatedClient == null) {
+            DesigoCloudConnectorException de = new DesigoCloudConnectorException("TrendsLastUpdatedService is null");
+            log.warn(de.getMessage());
+            currentErrors.add(Instant.now() + "--" + de.getMessage());
+            isHealthy = false;
+            throw de;
+        }
+        if (lastFailedClient == null) {
+            DesigoCloudConnectorException de = new DesigoCloudConnectorException("TrendsLastFailedService is null");
+            log.warn(de.getMessage());
+            currentErrors.add(Instant.now() + "--" + de.getMessage());
+            isHealthy = false;
+            throw de;
+        }
+        isHealthy = true;
         String partitionKey = config.asString("trends.lastupdated.partitionKey", "Desigo");
         lastUpdatedClient.listRows(partitionKey).forEach(tableEntity -> {
             String trendId = tableEntity.get("RowKey");
@@ -59,9 +78,11 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
             sensorId.setTrendId(trendId);
             repository.addLastUpdated(sensorId, lastUpdatedAt);
         });
+        isHealthy = true;
     }
 
     void verifyOrInitializeAzureTableClients() {
+        log.trace("verifyOrInitializeAzureTableClients");
         //trends.lastupdated.enabled=true
         //trends.lastupdated.tableName=lastupdated
         //trends.lastupdated.partitionKey=Desigo
@@ -134,6 +155,17 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
                 lastUpdatedClient.updateRow(partitionKey, rowKey,properties);
             }
         }
+        isHealthy = true;
+    }
+
+    @Override
+    public boolean isHealthy() {
+        return isHealthy;
+    }
+
+    @Override
+    public List<String> getErrors() {
+        return currentErrors;
     }
 
     @Override

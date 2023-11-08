@@ -14,4 +14,6 @@ public interface TrendsLastUpdatedService {
     void persistLastUpdated(List<DesigoSensorId> sensorIds);
 
     void persistLastFailed(List<DesigoSensorId> sensorIds);
+    boolean isHealthy();
+    List<String> getErrors();
 }
