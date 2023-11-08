@@ -4,6 +4,7 @@ import no.cantara.realestate.sensors.desigo.DesigoSensorId;
 import org.slf4j.Logger;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,5 +57,15 @@ public class InMemoryTrendsLastUpdatedService implements TrendsLastUpdatedServic
     @Override
     public void persistLastFailed(List<DesigoSensorId> sensorIds) {
         log.info("Simulating persisting last failed for {} sensors", sensorIds.size());
+    }
+
+    @Override
+    public boolean isHealthy() {
+        return true;
+    }
+
+    @Override
+    public List<String> getErrors() {
+        return new ArrayList<>();
     }
 }
