@@ -135,4 +135,14 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "AzureTrendsLastUpdatedService{" +
+                "config=" + config +
+                ", repository=" + repository +
+                ", lastUpdatedClient=" + lastUpdatedClient +
+                ", lastFailedClient=" + lastFailedClient +
+                '}';
+    }
 }

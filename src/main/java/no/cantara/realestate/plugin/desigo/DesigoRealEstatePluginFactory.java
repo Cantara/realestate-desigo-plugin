@@ -128,6 +128,7 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
         } else if (useCsv) {
             throw new RealEstateException("CSV not implemented yet");
         }
+        log.info("Created TrendsLastUpdatedService: {}", lastUpdatedService);
         return lastUpdatedService;
     }
 

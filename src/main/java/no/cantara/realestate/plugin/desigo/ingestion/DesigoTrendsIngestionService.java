@@ -42,6 +42,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
     private long numberOfMessagesFailed = 0;
     private boolean isInitialized = false;
     private String apiUrl;
+    private boolean isHealthy;
 
     public DesigoTrendsIngestionService(BasClient desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService) {
         sensorIds = new ArrayList<>();
@@ -67,7 +68,14 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
 
     @Override
     public void ingestTrends() {
-        trendsLastUpdatedService.readLastUpdated();
+        try {
+            trendsLastUpdatedService.readLastUpdated();
+        }catch (NullPointerException npe) {
+            isHealthy = false;
+            DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to read last updated. TrendsLastUpdatedService is null. That service must be injected on creation of DesigoTrendsIngestionService.",npe);
+            log.warn(de.getMessage());
+            throw de;
+        }
         List<DesigoSensorId> updatedSensors = new ArrayList<>();
         List<DesigoSensorId> failedSensors = new ArrayList<>();
         for (SensorId sensorId : sensorIds) {
@@ -81,6 +89,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                         lastObservedAt = Instant.now();
                     }
                     Set<? extends TrendSample> trendSamples = desigoApiClient.findTrendSamplesByDate(trendId, -1, -1, lastObservedAt.minusSeconds(600));
+                    isHealthy = true;
                     if (trendSamples != null && trendSamples.size() > 0) {
                         auditLog.trace("Ingest__TrendSamplesFound__{}__{}__{}__{}", trendId, sensorId.getClass(), sensorId.getId(), trendSamples.size());
                     } else {
@@ -205,7 +214,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
 
     @Override
     public boolean isHealthy() {
-        return true;
+        return isHealthy;
     }
 
     @Override

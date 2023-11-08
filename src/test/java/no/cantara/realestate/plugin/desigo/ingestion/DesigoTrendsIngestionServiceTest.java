@@ -4,6 +4,7 @@ import no.cantara.realestate.azure.storage.AzureStorageTablesClient;
 import no.cantara.realestate.azure.storage.AzureTableClient;
 import no.cantara.realestate.observations.ObservationListener;
 import no.cantara.realestate.observations.TrendSample;
+import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoTrendSample;
 import no.cantara.realestate.plugin.desigo.trends.AzureTrendsLastUpdatedService;
@@ -87,6 +88,15 @@ class DesigoTrendsIngestionServiceTest {
         verify(lastFailedClient, times(0)).updateRow(any(), any(), any());
     }
 
+    @Test
+    void trendsLastUpdatedServiceIsNull() {
+        trendsIngestionService = new DesigoTrendsIngestionService(config, observationListener, notificationListener,desigoApiClient,null);
+        Exception exception = assertThrows(DesigoCloudConnectorException.class, () -> trendsIngestionService.ingestTrends());
+        assertTrue( exception.getMessage().contains("TrendsLastUpdatedService is null") );
+        assertTrue(exception.getMessage().contains("MessageId"));
+        assertFalse(trendsIngestionService.isHealthy());
+    }
+
     private Set<TrendSample> buildDesigoTrendSamplesStub(DesigoSensorId sensorId) {
         Set<TrendSample> trendSamples = new HashSet<>();
         trendSamples.add(stubTrendSample(sensorId));
@@ -102,4 +112,5 @@ class DesigoTrendsIngestionServiceTest {
         trendSample.setValue(101);
         return trendSample;
     }
+
 }
