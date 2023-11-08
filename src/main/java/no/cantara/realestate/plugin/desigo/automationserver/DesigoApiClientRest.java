@@ -93,7 +93,8 @@ public class DesigoApiClientRest implements BasClient {
 
     @Override
     public Set<TrendSample> findTrendSamplesByDate(String trendId, int take, int skip, Instant onAndAfterDateTime) throws URISyntaxException, LogonFailedException {
-
+        log.trace("findTrendSamplesByDate. trendId: {}. From date: {}. Take: {}. Skip: {}",
+                trendId, onAndAfterDateTime, take, skip);
         String bearerToken = findAccessToken();
         URI samplesUri = new URI(apiUri + "trendseries/" + trendId);
         CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -180,6 +181,8 @@ public class DesigoApiClientRest implements BasClient {
         }
 
          */
+        log.trace("findTrendSamplesByDate. trendId: {}. From date: {}. Take: {}. Skip: {}. Found: {}",
+                trendId, onAndAfterDateTime, take, skip, trendSamples.size());
         isHealthy = true;
         return new HashSet<>(trendSamples);
     }
