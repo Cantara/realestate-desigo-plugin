@@ -117,18 +117,18 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
         TrendsLastUpdatedService lastUpdatedService = null;
-        boolean useInMemory = config.asBoolean("lastUpdated.inMemory", false);
         boolean useAzure = config.asBoolean("lastUpdated.azure", false);
         boolean useCsv = config.asBoolean("lastUpdated.csv", false);
-        if (useInMemory) {
-            lastUpdatedService = new InMemoryTrendsLastUpdatedService();
-        } else if (useAzure) {
+
+        if (useAzure) {
             TrendsLastUpdatedRepository repository = new TrendsLastUpdatedRepository();
             lastUpdatedService = new  AzureTrendsLastUpdatedService(config, repository);
         } else if (useCsv) {
             throw new RealEstateException("CSV not implemented yet");
+        } else {
+            lastUpdatedService = new InMemoryTrendsLastUpdatedService();
         }
-        log.info("Created TrendsLastUpdatedService: {}", lastUpdatedService);
+        log.info("Created TrendsLastUpdatedService: {}. Config useAzure {}, useCsv {}", lastUpdatedService.getClass(), useAzure, useCsv);
         return lastUpdatedService;
     }
 
