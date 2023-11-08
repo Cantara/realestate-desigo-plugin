@@ -135,12 +135,13 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
 
     @Override
     public boolean initialize(PluginConfig pluginConfig) {
+        log.trace("DesigoTrendsIngestionService.initialize");
         this.config = pluginConfig;
         apiUrl = config.asString("sd.api.url", "http://localhost:8080");
         boolean initializationOk = false;
         if (desigoApiClient != null && !desigoApiClient.isHealthy()) {
             if (desigoApiClient instanceof DesigoApiClientRest) {
-
+                log.info("DesigoApiClient is null or unhealty. Creating a new one. {}", desigoApiClient);
                 String username = config.asString("sd.api.username", "admin");
                 String password = config.asString("sd.api.password", "admin");
                 try {
