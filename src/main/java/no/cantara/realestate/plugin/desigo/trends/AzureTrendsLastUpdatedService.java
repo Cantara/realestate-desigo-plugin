@@ -80,13 +80,17 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
             try {
                 lastUpdatedAt = Instant.parse(lastUpdatedAtString);
             } catch (Exception e) {
-                log.trace("Could not parse lastUpdatedAtString: {} for RowKey {}. objectId.propertyId {}.{}", lastUpdatedAtString, trendId, desigoObjectId, desigoPropertyId, e);
+                log.trace("Could not parse lastUpdatedAtString: {} for RowKey {}. objectId.propertyId {}.{}.", lastUpdatedAtString, trendId, desigoObjectId, desigoPropertyId, e);
             }
         }
         DesigoSensorId sensorId = new DesigoSensorId(desigoObjectId, desigoPropertyId);
         sensorId.setId(id);
         sensorId.setTrendId(trendId);
-        repository.addLastUpdated(sensorId, lastUpdatedAt);
+        if (lastUpdatedAt != null) {
+            repository.addLastUpdated(sensorId, lastUpdatedAt);
+        } else {
+            log.trace("LastUpdatedAt is null. Will not be added to LastUpdatedRepository. RowKey {}. objectId.propertyId {}.{}. ", trendId, desigoObjectId, desigoPropertyId);
+        }
     }
 
     void verifyOrInitializeAzureTableClients() {
@@ -105,16 +109,28 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
 
     public static AzureTableClient createLastUpdatedTableClient(PluginConfig config) {
         String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
-        String tableName = config.asString("trends.lastUpdated.tableName", null);
-        AzureTableClient lastUpdatedClient = new AzureTableClient(connectionString, tableName);
-        log.info("Initialized lastUpdatedClient {} with tableName {}", lastUpdatedClient, tableName);
+        if (connectionString == null) {
+            log.warn("Missing configuration for Desigo.{}", AzureStorageTablesClient.CONNECTIONSTRING_KEY );
+        }
+        String lastUpdatedTableName = config.asString("trends.lastUpdated.tableName", null);
+        if (lastUpdatedTableName == null) {
+            log.warn("Missing configuration for Desigo.trends.lastUpdated.tableName");
+        }
+        AzureTableClient lastUpdatedClient = new AzureTableClient(connectionString, lastUpdatedTableName);
+        log.info("Initialized lastUpdatedClient {} with lastUpdatedTableName {}", lastUpdatedClient, lastUpdatedTableName);
         return lastUpdatedClient;
     }
     public static AzureTableClient createLastFailedTableClient(PluginConfig config) {
         String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
-        String tableName = config.asString("trends.lastFailed.tableName", null);
-        AzureTableClient lastFailedClient = new AzureTableClient(connectionString, tableName);
-        log.info("Initialized lastFailedClient {} with tableName {}", lastFailedClient, tableName);
+        if (connectionString == null) {
+            log.warn("Missing configuration for Desigo.{}", AzureStorageTablesClient.CONNECTIONSTRING_KEY );
+        }
+        String lastFailedTableName = config.asString("trends.lastFailed.tableName", null);
+        if (lastFailedTableName == null) {
+            log.warn("Missing configuration for Desigo.trends.lastFailed.tableName");
+        }
+        AzureTableClient lastFailedClient = new AzureTableClient(connectionString, lastFailedTableName);
+        log.info("Initialized lastFailedClient {} with lastFailedTableName {}", lastFailedClient, lastFailedTableName);
         return lastFailedClient;
     }
 

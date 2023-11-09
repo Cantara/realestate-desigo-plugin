@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import static no.cantara.realestate.plugin.desigo.DesigoRealEstatePluginFactory.PLUGIN_ID;
+import static no.cantara.realestate.plugin.desigo.utils.DesigoConstants.auditLog;
 import static no.cantara.realestate.utils.StringUtils.hasValue;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -106,17 +107,11 @@ public class DesigoApiClientRest implements BasClient {
             int page=1;
             int pageSize=1000;
             String endTime = Instant.now().plusSeconds(60).truncatedTo(ChronoUnit.SECONDS).toString();
-
-//        DesigoTrendSampleResult trendSampleResult = trendSampleService.findTrendSamplesByDate("Bearer " + bearerToken, prefixedUrlEncodedTrendId, pageSize, page, startTime, endTime);
             log.trace("findTrendSamplesByDate. trendId: {}. From date: {}. To date: {}. Page: {}. PageSize: {}. Take: {}. Skip: {}",
                     trendId, onAndAfterDateTime, endTime, page, pageSize, take, skip);
             List<NameValuePair> nvps = new ArrayList<>();
-            // GET Query Parameters
             nvps.add(new BasicNameValuePair("from", startTime));
             nvps.add(new BasicNameValuePair("to", endTime));
-//            nvps.add(new BasicNameValuePair("page", "1"));
-//            nvps.add(new BasicNameValuePair("pageSize", "1000"));
-//            nvps.add(new BasicNameValuePair("skip", "0"));
 
             URI uri = new URIBuilder(samplesUri)
                     .addParameters(nvps)
@@ -125,6 +120,7 @@ public class DesigoApiClientRest implements BasClient {
             request.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
             request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken);
             CloseableHttpResponse response = httpClient.execute(request);
+
             try {
                 int httpCode = response.getCode();
                 if (httpCode == 200) {
@@ -458,15 +454,23 @@ public class DesigoApiClientRest implements BasClient {
         return "DesigoApiClientRest";
     }
     void setHealthy() {
-        this.isHealthy = true;
-        log.debug("Desigo is Healthy");
-        notificationListener.setHealthy(PLUGIN_ID, DESIGO_API);
+        if (!this.isHealthy) {
+            this.isHealthy = true;
+            log.trace("Desigo is Healthy");
+            if (notificationListener != null) {
+                notificationListener.setHealthy(PLUGIN_ID, DESIGO_API);
+            }
+        }
     }
 
     void setUnhealthy() {
-        log.warn("Desigo is Unhealthy");
-        this.isHealthy = false;
-        notificationListener.setUnhealthy(PLUGIN_ID, DESIGO_API, "See log for details");
+        if (this.isHealthy) {
+            log.warn("Desigo is Unhealthy");
+            this.isHealthy = false;
+            if (notificationListener != null) {
+                notificationListener.setUnhealthy(PLUGIN_ID, DESIGO_API, "See log for details");
+            }
+        }
     }
 
 

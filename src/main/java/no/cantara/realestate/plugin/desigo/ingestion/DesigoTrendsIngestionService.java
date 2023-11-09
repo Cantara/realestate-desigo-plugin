@@ -116,6 +116,17 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                     trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
                     failedSensors.add((DesigoSensorId) sensorId);
                     throw new RuntimeException(e);
+                } catch (DesigoCloudConnectorException dce) {
+                    numberOfMessagesFailed++;
+                    trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
+                    failedSensors.add((DesigoSensorId) sensorId);
+                    log.debug("Failed to ingest trends for TrendId {} sensorId {}.", trendId, sensorId, dce);
+                    auditLog.trace("Ingest__TrendImportFailed__{}__{}__{}__{}", trendId, sensorId.getId(), ((DesigoSensorId) sensorId).getDesigoPropertyId(), dce.getMessage());
+                } catch (Exception e) {
+                    numberOfMessagesFailed++;
+                    trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
+                    failedSensors.add((DesigoSensorId) sensorId);
+                    log.debug("Failed to ingest trends for sensorId {}.", sensorId, e);
                 }
             } else {
                 auditLog.trace("Ingest__TrendIdMissing__{}__{}__{}__{}__{}", sensorId.getClass(), sensorId.getId(), ((DesigoSensorId) sensorId).getDesigoPropertyId());
