@@ -72,7 +72,7 @@ public class DesigoTrendsIngestionFlowTest {
         RealEstatePluginFactory desigoFactory = new DesigoRealEstatePluginFactory();
 
         desigoFactory.initialize(desigoConfig);
-        List<IngestionService> ingestionServices = desigoFactory.createIngestionServices();
+        List<IngestionService> ingestionServices = desigoFactory.createIngestionServices(observationListener, notificationListener);
         DesigoTrendsIngestionService trendsService = null;
         for (IngestionService ingestionService : ingestionServices) {
             if (ingestionService instanceof DesigoTrendsIngestionService) {

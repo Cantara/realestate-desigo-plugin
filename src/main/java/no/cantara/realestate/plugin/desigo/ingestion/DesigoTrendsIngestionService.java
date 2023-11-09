@@ -42,11 +42,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
     private String apiUrl;
     private boolean isHealthy;
 
-    public DesigoTrendsIngestionService(BasClient desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService) {
-        sensorIds = new ArrayList<>();
-        this.desigoApiClient = desigoApiClient;
-        this.trendsLastUpdatedService = trendsLastUpdatedService;
-    }
+
 
     /**
      * Used for testing
@@ -56,7 +52,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
      * @param notificationListener
      * @param desigoApiClient
      */
-    protected DesigoTrendsIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, DesigoApiClientRest desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService) {
+    public DesigoTrendsIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, BasClient desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService) {
         this.config = config;
         this.observationListener = observationListener;
         this.notificationListener = notificationListener;

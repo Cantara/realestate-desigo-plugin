@@ -6,7 +6,6 @@ import no.cantara.realestate.observations.ObservedValue;
 import no.cantara.realestate.observations.PresentValue;
 import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
-import no.cantara.realestate.plugin.desigo.automationserver.DesigoPresentValue;
 import no.cantara.realestate.plugin.desigo.automationserver.SdClientSimulator;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.ingestion.PresentValueIngestionService;
@@ -34,11 +33,6 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
     private long numberOfMessagesImported = 0;
     private long numberOfMessagesFailed = 0;
 
-    public DesigoPresentValueIngestionService(BasClient desigoApiClient) {
-        sensorIds = new ArrayList<>();
-        this.desigoApiClient = desigoApiClient;
-    }
-
     /**
      * Used for testing
      *
@@ -47,7 +41,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
      * @param notificationListener
      * @param desigoApiClient
      */
-    protected DesigoPresentValueIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, DesigoApiClientRest desigoApiClient) {
+    public DesigoPresentValueIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, BasClient desigoApiClient) {
         this.config = config;
         this.observationListener = observationListener;
         this.notificationListener = notificationListener;

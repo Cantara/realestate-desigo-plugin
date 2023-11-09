@@ -3,6 +3,7 @@ package no.cantara.realestate.plugin.desigo;
 import no.cantara.realestate.RealEstateException;
 import no.cantara.realestate.automationserver.BasClient;
 import no.cantara.realestate.azure.storage.AzureTableClient;
+import no.cantara.realestate.observations.ObservationListener;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
 import no.cantara.realestate.plugin.desigo.automationserver.SdClientSimulator;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionService;
@@ -21,6 +22,7 @@ import no.cantara.realestate.plugins.distribution.DistributionService;
 import no.cantara.realestate.plugins.ingestion.IngestionService;
 import no.cantara.realestate.plugins.ingestion.PresentValueIngestionService;
 import no.cantara.realestate.plugins.ingestion.TrendsIngestionService;
+import no.cantara.realestate.plugins.notifications.NotificationListener;
 import no.cantara.realestate.plugins.sensormapping.PluginSensorMappingImporter;
 import org.slf4j.Logger;
 
@@ -89,7 +91,7 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
     }
 
     @Override
-    public List<IngestionService> createIngestionServices() {
+    public List<IngestionService> createIngestionServices(ObservationListener observationListener, NotificationListener notificationListener) {
         List<IngestionService> ingestionServices = new ArrayList<>();
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
@@ -104,11 +106,11 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
             if (desigoApiClient == null) {
                 throw new RealEstateException("Missing DesigoApiClient. Please call initialize() first.");
             }
-            PresentValueIngestionService presentValueService = createPresentValueIngestionService(desigoApiClient);
+            PresentValueIngestionService presentValueService = createPresentValueIngestionService(desigoApiClient, observationListener, notificationListener);
             ingestionServices.add(presentValueService);
             log.info("Added DesigoPresentValueIngestionService");
             TrendsLastUpdatedService trendsLastUpdatedService = createTrendsLastUpdatedService(config);
-            TrendsIngestionService trendsIngestionService = createTrendsIngestionService(desigoApiClient, trendsLastUpdatedService);
+            TrendsIngestionService trendsIngestionService = createTrendsIngestionService(desigoApiClient, trendsLastUpdatedService, observationListener, notificationListener);
             ingestionServices.add(trendsIngestionService);
             log.info("Added DesigoTrendsIngestionService");
         }
@@ -141,19 +143,19 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
 
 
 
-    protected PresentValueIngestionService createPresentValueIngestionService(BasClient desigoApiClient) {
+    protected PresentValueIngestionService createPresentValueIngestionService(BasClient desigoApiClient, ObservationListener observationListener, NotificationListener notificationListener) {
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
-        PresentValueIngestionService presentValueService = new DesigoPresentValueIngestionService(desigoApiClient);
+        PresentValueIngestionService presentValueService = new DesigoPresentValueIngestionService(config, observationListener, notificationListener, desigoApiClient);
         log.info("Created PresentValueIngestionService: {}", presentValueService);
         return presentValueService;
     }
-    protected TrendsIngestionService createTrendsIngestionService(BasClient desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService) {
+    protected TrendsIngestionService createTrendsIngestionService(BasClient desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService, ObservationListener observationListener, NotificationListener notificationListener) {
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
-        TrendsIngestionService trendsIngestionService = new DesigoTrendsIngestionService(desigoApiClient, trendsLastUpdatedService);
+        TrendsIngestionService trendsIngestionService = new DesigoTrendsIngestionService(config,  observationListener, notificationListener, desigoApiClient, trendsLastUpdatedService);
         log.info("Created TrendsIngestionService: {} with desigoApiClient {} and trendsLastUpdatedService {}", trendsIngestionService, desigoApiClient, trendsLastUpdatedService);
         return trendsIngestionService;
     }
