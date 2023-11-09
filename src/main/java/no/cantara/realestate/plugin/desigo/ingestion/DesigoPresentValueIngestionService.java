@@ -42,6 +42,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
      * @param desigoApiClient
      */
     public DesigoPresentValueIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, BasClient desigoApiClient) {
+        sensorIds = new ArrayList<>();
         this.config = config;
         this.observationListener = observationListener;
         this.notificationListener = notificationListener;

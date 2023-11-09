@@ -53,6 +53,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
      * @param desigoApiClient
      */
     public DesigoTrendsIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, BasClient desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService) {
+        sensorIds = new ArrayList<>();
         this.config = config;
         this.observationListener = observationListener;
         this.notificationListener = notificationListener;
