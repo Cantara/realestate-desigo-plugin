@@ -535,7 +535,7 @@ public class DesigoApiClientRest implements BasClient {
         DesigoApiClientRest apiClient = new DesigoApiClientRest(apiUri);
         apiClient.openConnection(userName, password, new NotificationListenerStub());
         String bearerToken = apiClient.findAccessToken();
-        Set<TrendSample> trends = apiClient.findTrendSamples(bearerToken, trendId);
+        Set<TrendSample> trends = apiClient.findTrendSamplesByDate(trendId, 1000, 0, Instant.now().minus(30, ChronoUnit.DAYS));
         for (TrendSample trend : trends) {
             if (trend != null) {
                 log.info("Trend id={}, value={}, valid={}", trend.getTrendId(), trend.getValue(), trend.isValid());
