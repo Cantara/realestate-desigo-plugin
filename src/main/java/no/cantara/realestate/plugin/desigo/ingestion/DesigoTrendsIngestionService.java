@@ -56,7 +56,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
         this.config = config;
         if (config == null || observationListener == null || notificationListener == null || desigoApiClient == null || trendsLastUpdatedService == null) {
             throw new DesigoCloudConnectorException("Failed to create DesigoTrendsIngestionService. " +
-                    "One or more of the parameters are null. config: " + config
+                    "One or more of the parameters are null. config has value: " + (config != null)
                     + ", observationListener: " + observationListener
                     + ", notificationListener: " + notificationListener
                     + ", desigoApiClient: " + desigoApiClient
