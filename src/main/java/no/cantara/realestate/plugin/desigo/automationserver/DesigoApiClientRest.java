@@ -65,10 +65,11 @@ public class DesigoApiClientRest implements BasClient {
         this.apiUri = apiUri;
     }
 
-    public DesigoApiClientRest(URI apiUri, String username, String password) {
+    public DesigoApiClientRest(URI apiUri, String username, String password, NotificationListener notificationListener) {
         this.apiUri = apiUri;
         this.username = username;
         this.password = password;
+        this.notificationListener = notificationListener;
     }
 
     public void openConnection(String username, String password, NotificationListener notificationListener) throws LogonFailedException {
@@ -419,7 +420,9 @@ public class DesigoApiClientRest implements BasClient {
                     LogonFailedException logonFailedException = new LogonFailedException(msg);
                     log.warn("Failed to logon to Desigo. Reason {}", logonFailedException.getMessage());
                     setUnhealthy();
-                    notificationListener.sendWarning(PLUGIN_ID,DESIGO_API,LOGON_FAILED);
+                    if (notificationListener != null) {
+                        notificationListener.sendWarning(PLUGIN_ID, DESIGO_API, LOGON_FAILED);
+                    }
                     log.warn("Failed to logon to Desigo. Reason: " + logonFailedException.getMessage());
                     throw logonFailedException;
                 }
@@ -428,14 +431,18 @@ public class DesigoApiClientRest implements BasClient {
                 response.close();
             }
         } catch (IOException e) {
-            notificationListener.sendAlarm(PLUGIN_ID,DESIGO_API,HOST_UNREACHABLE);
+            if (notificationListener != null) {
+                notificationListener.sendAlarm(PLUGIN_ID, DESIGO_API, HOST_UNREACHABLE);
+            }
             String msg = "Failed to logon to Desigo at uri: " + loginUri + ", with username: " + username;
             LogonFailedException logonFailedException = new LogonFailedException(msg, e);
             log.warn(msg);
             setUnhealthy();
             throw logonFailedException;
         } catch (ParseException e) {
-            notificationListener.sendWarning(PLUGIN_ID, DESIGO_API,"Parsing of login information failed.");
+            if (notificationListener != null) {
+                notificationListener.sendWarning(PLUGIN_ID, DESIGO_API, "Parsing of login information failed.");
+            }
             String msg = "Failed to logon to Desigo at uri: " + loginUri + ", with username: " + username +
                     ". Failure parsing the response.";
             LogonFailedException logonFailedException = new LogonFailedException(msg, e);

@@ -67,13 +67,15 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
             apiUri = URI.create(apiUrl);
             String username = config.asString("sd.api.username", "admin");
             String password = config.asString("sd.api.password", "admin");
-            desigoApiClient = new DesigoApiClientRest(apiUri, username, password);
+            desigoApiClient = new DesigoApiClientRest(apiUri, username, password, buildStubNotificationListener());
 
         } else if (useBasSimulator) {
             log.info("Using Desigo BAS client simulator");
             desigoApiClient = new SdClientSimulator();
         }
     }
+
+
 
     @Override
     public PluginSensorMappingImporter createSensorMappingImporter() {
@@ -168,5 +170,39 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
     public List<DistributionService> createDistributionServices() {
         log.warn("DistributionServices not implemented for Desigo");
         return null;
+    }
+
+    private NotificationListener buildStubNotificationListener() {
+        return new NotificationListener() {
+            @Override
+            public void sendWarning(String s, String s1, String s2) {
+                log.info("**Need** real Notification listener {}, {}, {}", s, s1, s2);
+            }
+
+            @Override
+            public void sendAlarm(String s, String s1, String s2) {
+                log.info("**Need** real Notification listener {}, {}, {}", s, s1, s2);
+            }
+
+            @Override
+            public void clearService(String s, String s1) {
+                log.info("**Need** real Notification listener {}, {}, {}", s, s1);
+            }
+
+            @Override
+            public void setHealthy(String s, String s1) {
+                log.info("**Need** real Notification listener {}, {}, {}", s, s1);
+            }
+
+            @Override
+            public void setUnhealthy(String s, String s1, String s2) {
+                log.info("**Need** real Notification listener {}, {}, {}", s, s1, s2);
+            }
+
+            @Override
+            public void addError(String s, String s1, String s2) {
+                log.info("**Need** real Notification listener {}, {}, {}", s, s1, s2);
+            }
+        };
     }
 }
