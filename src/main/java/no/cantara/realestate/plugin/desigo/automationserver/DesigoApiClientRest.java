@@ -107,8 +107,8 @@ public class DesigoApiClientRest implements BasClient {
             int page=1;
             int pageSize=1000;
             String endTime = Instant.now().plusSeconds(60).truncatedTo(ChronoUnit.SECONDS).toString();
-            log.trace("findTrendSamplesByDate. trendId: {}. From date: {}. To date: {}. Page: {}. PageSize: {}. Take: {}. Skip: {}",
-                    trendId, onAndAfterDateTime, endTime, page, pageSize, take, skip);
+//            log.trace("findTrendSamplesByDate. trendId: {}. From date: {}. To date: {}. Page: {}. PageSize: {}. Take: {}. Skip: {}",
+//                    trendId, startTime, endTime, page, pageSize, take, skip);
             List<NameValuePair> nvps = new ArrayList<>();
             nvps.add(new BasicNameValuePair("from", startTime));
             nvps.add(new BasicNameValuePair("to", endTime));
@@ -119,6 +119,7 @@ public class DesigoApiClientRest implements BasClient {
             request = new HttpGet(uri);
             request.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
             request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken);
+            log.trace("Find TrendSamples for TrendId: {} from uri: {}, with parameters: {}", trendId, uri, nvps);
             CloseableHttpResponse response = httpClient.execute(request);
 
             try {
@@ -535,7 +536,7 @@ public class DesigoApiClientRest implements BasClient {
         DesigoApiClientRest apiClient = new DesigoApiClientRest(apiUri);
         apiClient.openConnection(userName, password, new NotificationListenerStub());
         String bearerToken = apiClient.findAccessToken();
-        Set<TrendSample> trends = apiClient.findTrendSamplesByDate(trendId, 1000, 0, Instant.now().minus(30, ChronoUnit.DAYS));
+        Set<TrendSample> trends = apiClient.findTrendSamplesByDate(trendId, 10, 0, Instant.now().minus(30, ChronoUnit.DAYS));
         for (TrendSample trend : trends) {
             if (trend != null) {
                 log.info("Trend id={}, value={}, valid={}", trend.getTrendId(), trend.getValue(), trend.isValid());
