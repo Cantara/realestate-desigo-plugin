@@ -8,8 +8,6 @@ import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoTrendSample;
 import no.cantara.realestate.plugin.desigo.automationserver.SdClientSimulator;
-import no.cantara.realestate.plugin.desigo.trends.AzureTrendsLastUpdatedService;
-import no.cantara.realestate.plugin.desigo.trends.TrendsLastUpdatedRepository;
 import no.cantara.realestate.plugin.desigo.trends.TrendsLastUpdatedService;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.ingestion.TrendsIngestionService;

@@ -2,6 +2,7 @@ package no.cantara.realestate.plugin.desigo;
 
 import no.cantara.realestate.RealEstateException;
 import no.cantara.realestate.automationserver.BasClient;
+import no.cantara.realestate.azure.storage.AzureTableClient;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
 import no.cantara.realestate.plugin.desigo.automationserver.SdClientSimulator;
 import no.cantara.realestate.plugin.desigo.ingestion.DesigoPresentValueIngestionService;
@@ -27,6 +28,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import static no.cantara.realestate.plugin.desigo.trends.AzureTrendsLastUpdatedService.createLastFailedTableClient;
+import static no.cantara.realestate.plugin.desigo.trends.AzureTrendsLastUpdatedService.createLastUpdatedTableClient;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
@@ -122,7 +125,11 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
 
         if (useAzure) {
             TrendsLastUpdatedRepository repository = new TrendsLastUpdatedRepository();
-            lastUpdatedService = new  AzureTrendsLastUpdatedService(config, repository);
+            AzureTableClient lastUpdatedTableClient = createLastUpdatedTableClient(config);
+            AzureTableClient lastFailedTableClient = createLastFailedTableClient(config);
+            lastUpdatedService = new  AzureTrendsLastUpdatedService(config, repository,lastUpdatedTableClient, lastFailedTableClient);
+            log.info("Created TrendsLastUpdatedService: {} with trendsLastUpdatedRepository {}lastUpdatedTableClient " +
+                    "{} and lastFailedTableClient {}", lastUpdatedService, repository, lastUpdatedTableClient, lastFailedTableClient);
         } else if (useCsv) {
             throw new RealEstateException("CSV not implemented yet");
         } else {
@@ -131,6 +138,8 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
         log.info("Created TrendsLastUpdatedService: {}. Config useAzure {}, useCsv {}", lastUpdatedService.getClass(), useAzure, useCsv);
         return lastUpdatedService;
     }
+
+
 
     protected PresentValueIngestionService createPresentValueIngestionService(BasClient desigoApiClient) {
         if (config == null) {

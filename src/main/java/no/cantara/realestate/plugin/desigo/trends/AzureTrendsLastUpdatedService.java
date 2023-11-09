@@ -28,6 +28,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     public AzureTrendsLastUpdatedService(PluginConfig config, TrendsLastUpdatedRepository repository) {
         this.config = config;
         this.repository = repository;
+        isHealthy = false;
     }
 
     /*
@@ -38,6 +39,9 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         this.repository = repository;
         this.lastUpdatedClient = lastUpdatedClient;
         this.lastFailedClient = lastFailedClient;
+        if (config != null && repository != null && lastUpdatedClient != null && lastFailedClient != null) {
+            isHealthy = true;
+        }
     }
 
     @Override
@@ -90,16 +94,28 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         //trends.lastupdated.enabled=true
         //trends.lastupdated.tableName=lastupdated
         //trends.lastupdated.partitionKey=Desigo
-        String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
+
         if (lastUpdatedClient == null) {
-            String tableName = config.asString("trends.lastupdated.tableName", null);
-            lastUpdatedClient = new AzureTableClient(connectionString, tableName);
-            log.info("Initialized lastUpdatedClient {} with tableName {}", lastUpdatedClient, tableName);
+            lastUpdatedClient = createLastUpdatedTableClient(config);
         }
         if (lastFailedClient == null) {
-            String tableName = config.asString("trends.lastFailed.tableName", null);
-            lastFailedClient = new AzureTableClient(connectionString, tableName);
+            lastFailedClient = createLastFailedTableClient(config);
         }
+    }
+
+    public static AzureTableClient createLastUpdatedTableClient(PluginConfig config) {
+        String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
+        String tableName = config.asString("trends.lastUpdated.tableName", null);
+        AzureTableClient lastUpdatedClient = new AzureTableClient(connectionString, tableName);
+        log.info("Initialized lastUpdatedClient {} with tableName {}", lastUpdatedClient, tableName);
+        return lastUpdatedClient;
+    }
+    public static AzureTableClient createLastFailedTableClient(PluginConfig config) {
+        String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
+        String tableName = config.asString("trends.lastFailed.tableName", null);
+        AzureTableClient lastFailedClient = new AzureTableClient(connectionString, tableName);
+        log.info("Initialized lastFailedClient {} with tableName {}", lastFailedClient, tableName);
+        return lastFailedClient;
     }
 
     @Override
