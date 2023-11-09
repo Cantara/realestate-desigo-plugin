@@ -92,10 +92,14 @@ public class DesigoRealEstatePluginFactory  implements RealEstatePluginFactory {
 
     @Override
     public List<IngestionService> createIngestionServices(ObservationListener observationListener, NotificationListener notificationListener) {
+        if (observationListener == null || notificationListener == null) {
+            throw new RealEstateException("Missing parameters: observationListener {} or notificationListener {}.");
+        }
         List<IngestionService> ingestionServices = new ArrayList<>();
         if (config == null) {
             throw new RealEstateException("Missing configuration. Please call initialize() first.");
         }
+
         boolean useSimulators = config.asBoolean("ingestionServices.simulator.enabled", false);
         if (useSimulators) {
             ingestionServices.add(new DesigoPresentValueIngestionServiceSimulator());
