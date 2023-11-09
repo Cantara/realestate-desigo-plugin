@@ -19,9 +19,11 @@ import org.slf4j.Logger;
 
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static no.cantara.realestate.plugin.desigo.utils.DesigoConstants.auditLog;
 import static no.cantara.realestate.utils.StringUtils.hasValue;
@@ -90,7 +92,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                     Instant lastObservedAt = trendsLastUpdatedService.getLastUpdatedAt((DesigoSensorId) sensorId);
                     auditLog.trace("Ingest__TrendLastUpdatedAt__{}__{}__{}__{}", trendId, sensorId.getClass(), sensorId.getId(), lastObservedAt);
                     if (lastObservedAt == null) {
-                        lastObservedAt = Instant.now();
+                        lastObservedAt = getDefaultLastObservedAt();
                     }
                     Set<? extends TrendSample> trendSamples = desigoApiClient.findTrendSamplesByDate(trendId, -1, -1, lastObservedAt.minusSeconds(600));
                     isHealthy = true;
@@ -141,6 +143,10 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
         trendsLastUpdatedService.persistLastUpdated(updatedSensors);
         trendsLastUpdatedService.persistLastFailed(failedSensors);
 
+    }
+
+    protected Instant getDefaultLastObservedAt() {
+        return Instant.now().minus(30, ChronoUnit.DAYS);
     }
 
     @Override

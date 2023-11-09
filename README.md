@@ -12,3 +12,6 @@ Run `mvn clean install` from the command line.
 ```
 Desigo.ingestionServices.simulator.enabled=true
 ```
+
+## Defaults
+* When no date is found for when TrendId was last imported. The default is last 30 days.
