@@ -103,7 +103,8 @@ public class DesigoApiClientRest implements BasClient {
         List<DesigoTrendSample> trendSamples = new ArrayList<>();
         try {
 
-            String startTime = onAndAfterDateTime.truncatedTo(ChronoUnit.SECONDS).toString();
+            String startTime = instantWithSecondsAccuracy(onAndAfterDateTime);
+            log.trace("validate From date: onAndAfterDateTime: {}. startTime: {} should be simmilar", onAndAfterDateTime, startTime);
             int page=1;
             int pageSize=1000;
             String endTime = Instant.now().plusSeconds(60).truncatedTo(ChronoUnit.SECONDS).toString();
@@ -119,7 +120,7 @@ public class DesigoApiClientRest implements BasClient {
             request = new HttpGet(uri);
             request.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
             request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken);
-            log.trace("Find TrendSamples for TrendId: {} from uri: {}, with parameters: {}", trendId, uri, nvps);
+            log.trace("Find TrendSamples for TrendId: {} from uri: {} From date: {}, with parameters: {} ", trendId, uri, startTime, nvps);
             CloseableHttpResponse response = httpClient.execute(request);
 
             try {
@@ -182,6 +183,10 @@ public class DesigoApiClientRest implements BasClient {
                 trendId, onAndAfterDateTime, take, skip, trendSamples.size());
         isHealthy = true;
         return new HashSet<>(trendSamples);
+    }
+
+    protected static String instantWithSecondsAccuracy(Instant onAndAfterDateTime) {
+        return onAndAfterDateTime.truncatedTo(ChronoUnit.SECONDS).toString();
     }
 
     @Override
