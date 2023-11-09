@@ -43,7 +43,6 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
     private boolean isHealthy;
 
 
-
     /**
      * Used for testing
      *
@@ -55,19 +54,29 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
     public DesigoTrendsIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, BasClient desigoApiClient, TrendsLastUpdatedService trendsLastUpdatedService) {
         sensorIds = new ArrayList<>();
         this.config = config;
+        if (config == null || observationListener == null || notificationListener == null || desigoApiClient == null || trendsLastUpdatedService == null) {
+            throw new DesigoCloudConnectorException("Failed to create DesigoTrendsIngestionService. " +
+                    "One or more of the parameters are null. config: " + config
+                    + ", observationListener: " + observationListener
+                    + ", notificationListener: " + notificationListener
+                    + ", desigoApiClient: " + desigoApiClient
+                    + ", trendsLastUpdatedService: "
+                    + trendsLastUpdatedService);
+        }
         this.observationListener = observationListener;
         this.notificationListener = notificationListener;
         this.desigoApiClient = desigoApiClient;
         this.trendsLastUpdatedService = trendsLastUpdatedService;
+
     }
 
     @Override
     public void ingestTrends() {
         try {
             trendsLastUpdatedService.readLastUpdated();
-        }catch (NullPointerException npe) {
+        } catch (NullPointerException npe) {
             isHealthy = false;
-            DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to read last updated. TrendsLastUpdatedService is null. That service must be injected on creation of DesigoTrendsIngestionService.",npe);
+            DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to read last updated. TrendsLastUpdatedService is null. That service must be injected on creation of DesigoTrendsIngestionService.", npe);
             log.warn(de.getMessage());
             throw de;
         }

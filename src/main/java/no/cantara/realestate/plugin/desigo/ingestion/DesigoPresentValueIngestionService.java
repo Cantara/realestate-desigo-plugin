@@ -43,6 +43,13 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
      */
     public DesigoPresentValueIngestionService(PluginConfig config, ObservationListener observationListener, NotificationListener notificationListener, BasClient desigoApiClient) {
         sensorIds = new ArrayList<>();
+        if (config == null || observationListener == null || notificationListener == null || desigoApiClient == null) {
+            throw new DesigoCloudConnectorException("Failed to create DesigoTrendsIngestionService. " +
+                    "One or more of the parameters are null. config: " + config
+                    + ", observationListener: " + observationListener
+                    + ", notificationListener: " + notificationListener
+                    + ", desigoApiClient: " + desigoApiClient);
+        }
         this.config = config;
         this.observationListener = observationListener;
         this.notificationListener = notificationListener;
