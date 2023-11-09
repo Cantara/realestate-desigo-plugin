@@ -113,7 +113,11 @@ class AzureTrendsLastUpdatedServiceTest {
         tableEntry.put("DesigoPropertyId", "prop1");
         tableEntry.put("LastUpdatedAt", "2020-01-01T00:00Z");
         trendsLastUpdatedService.updateRepository(tableEntry);
-        assertEquals(1, trendsLastUpdatedRepository.countLastUpdatedSensors());
+        assertEquals(0, trendsLastUpdatedRepository.countLastUpdatedSensors());
         assertEquals(0, trendsLastUpdatedRepository.countLastFailedSensors());
+        //With propper date
+        tableEntry.put("LastUpdatedAt", "2020-01-01T00:00:00.00Z");
+        trendsLastUpdatedService.updateRepository(tableEntry);
+        assertEquals(1, trendsLastUpdatedRepository.countLastUpdatedSensors());
     }
 }
