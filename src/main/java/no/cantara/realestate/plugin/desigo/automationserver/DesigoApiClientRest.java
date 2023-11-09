@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 
 import static no.cantara.realestate.plugin.desigo.DesigoRealEstatePluginFactory.PLUGIN_ID;
-import static no.cantara.realestate.plugin.desigo.utils.DesigoConstants.auditLog;
 import static no.cantara.realestate.utils.StringUtils.hasValue;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -392,7 +391,9 @@ public class DesigoApiClientRest implements BasClient {
                         userToken = RealEstateObjectMapper.getInstance().getObjectMapper().readValue(body, DesigoUserToken.class);
                         log.trace("Converted to userToken: {}", userToken);
                         setHealthy();
-                        notificationListener.clearService(PLUGIN_ID, DESIGO_API);
+                        if (notificationListener != null) {
+                            notificationListener.clearService(PLUGIN_ID, DESIGO_API);
+                        }
                     }
                 } else {
                     String requestHeaders = "";
