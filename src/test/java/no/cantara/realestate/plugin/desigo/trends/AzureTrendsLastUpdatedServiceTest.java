@@ -120,4 +120,45 @@ class AzureTrendsLastUpdatedServiceTest {
         trendsLastUpdatedService.updateRepository(tableEntry);
         assertEquals(1, trendsLastUpdatedRepository.countLastUpdatedSensors());
     }
+
+    @Test
+    void persistLastUpdatedTest() {
+        DesigoSensorId sensorId = new DesigoSensorId("System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
+        sensorId.setTrendId("System1:GmsDevice_2_101414_83886086.general.Data:_offline.._value");
+        sensorId.setId("TODOSensor1");
+        trendsLastUpdatedRepository.addLastUpdated(sensorId, Instant.parse("2023-11-10T08:05:57Z"));
+        DesigoSensorId testTrendId = new DesigoSensorId("Id1", "prop1");
+        testTrendId.setTrendId("TestTrendTrend1");
+        testTrendId.setId("Sensor-1234");
+        trendsLastUpdatedRepository.addLastUpdated(testTrendId, Instant.parse("2023-11-10T08:05:57Z"));
+        assertEquals(Instant.parse("2023-11-10T08:05:57Z"),trendsLastUpdatedRepository.getTrendsLastUpdated().get(sensorId));
+        trendsLastUpdatedService.persistLastUpdated(List.of(sensorId));
+        verify(tableClient, times(1)).updateEntity(isA(TableEntity.class));
+    }
+
+    @Test
+    void persistLastUpdatedSensorIdIsNull() {
+        DesigoSensorId sensorId = new DesigoSensorId("System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
+        sensorId.setTrendId("System1:GmsDevice_2_101414_83886086.general.Data:_offline.._value");
+        sensorId.setId("TODOSensor1");
+        trendsLastUpdatedRepository.addLastUpdated(sensorId, Instant.parse("2023-11-10T08:05:57Z"));
+        assertEquals(Instant.parse("2023-11-10T08:05:57Z"),trendsLastUpdatedRepository.getTrendsLastUpdated().get(sensorId));
+        sensorId.setId(null);
+        trendsLastUpdatedService.persistLastUpdated(List.of(sensorId));
+        verify(tableClient, times(1)).updateEntity(isA(TableEntity.class));
+    }
+
+    @Test
+    void persistLastUpdatedValidateRepository() {
+        DesigoSensorId sensorId = new DesigoSensorId("System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
+        sensorId.setTrendId("System1:GmsDevice_2_101414_83886086.general.Data:_offline.._value");
+        sensorId.setId("TODOSensor1");
+        trendsLastUpdatedRepository.addLastUpdated(sensorId, Instant.parse("2023-11-10T08:05:57Z"));
+        DesigoSensorId testTrendId = new DesigoSensorId("Id1", "prop1");
+        testTrendId.setTrendId("TestTrendTrend1");
+        testTrendId.setId("Sensor-1234");
+        trendsLastUpdatedRepository.addLastUpdated(testTrendId, Instant.parse("2023-11-10T08:05:57Z"));
+        sensorId.setId(null);
+        assertEquals(Instant.parse("2023-11-10T08:05:57Z"),trendsLastUpdatedRepository.getTrendsLastUpdated().get(sensorId));
+    }
 }

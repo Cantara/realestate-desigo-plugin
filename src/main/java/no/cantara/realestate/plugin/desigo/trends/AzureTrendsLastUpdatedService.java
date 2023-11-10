@@ -9,12 +9,14 @@ import org.slf4j.Logger;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static no.cantara.realestate.utils.StringUtils.hasValue;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
+public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService {
     private static final Logger log = getLogger(AzureTrendsLastUpdatedService.class);
     private final PluginConfig config;
     private final TrendsLastUpdatedRepository repository;
@@ -78,7 +80,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         String desigoPropertyId = tableEntity.get("DesigoPropertyId");
         String lastUpdatedAtString = tableEntity.get("LastUpdatedAt");
         Instant lastUpdatedAt = null;
-        if (lastUpdatedAtString != null && ! lastUpdatedAtString.isEmpty()) {
+        if (lastUpdatedAtString != null && !lastUpdatedAtString.isEmpty()) {
             try {
                 lastUpdatedAt = Instant.parse(lastUpdatedAtString);
             } catch (Exception e) {
@@ -112,7 +114,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     public static AzureTableClient createLastUpdatedTableClient(PluginConfig config) {
         String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
         if (connectionString == null) {
-            log.warn("Missing configuration for Desigo.{}", AzureStorageTablesClient.CONNECTIONSTRING_KEY );
+            log.warn("Missing configuration for Desigo.{}", AzureStorageTablesClient.CONNECTIONSTRING_KEY);
         }
         String lastUpdatedTableName = config.asString("trends.lastUpdated.tableName", null);
         if (lastUpdatedTableName == null) {
@@ -122,10 +124,11 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         log.info("Initialized lastUpdatedClient {} with lastUpdatedTableName {}", lastUpdatedClient, lastUpdatedTableName);
         return lastUpdatedClient;
     }
+
     public static AzureTableClient createLastFailedTableClient(PluginConfig config) {
         String connectionString = config.asString(AzureStorageTablesClient.CONNECTIONSTRING_KEY, null);
         if (connectionString == null) {
-            log.warn("Missing configuration for Desigo.{}", AzureStorageTablesClient.CONNECTIONSTRING_KEY );
+            log.warn("Missing configuration for Desigo.{}", AzureStorageTablesClient.CONNECTIONSTRING_KEY);
         }
         String lastFailedTableName = config.asString("trends.lastFailed.tableName", null);
         if (lastFailedTableName == null) {
@@ -157,30 +160,30 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         int notUpdated = 0;
         String partitionKey = config.asString("trends.lastupdated.partitionKey", PARTITION_KEY);
         log.trace("trendsLastUpdated:Persist last updated to AzureTableClient for {} sensorIds with PartitionKey: {} ", sensorIds.size(), partitionKey);
-
         try {
             for (DesigoSensorId sensorId : sensorIds) {
-                log.trace("trendsLastUpdated:Find LastUpdated in repository for sensorId: {}", sensorId);
-                log.trace("trendsLastUpdated:SensorId: {}", sensorId.toString());
-                log.trace("trendsLastUpdated:Repository: {}", repository.toString());
-                repository.getTrendsLastUpdated().forEach((k, v) -> log.trace("trendsLastUpdated:Repository:Key: {}, Value: {}", k, v));
-                log.trace("trendsLastUpdated:Repository:LastUpdated: {}", repository.getTrendsLastUpdated());
                 Instant lastUpdatedAt = repository.getTrendsLastUpdated().get(sensorId);
                 log.trace("trendsLastUpdated:Found LastUpdated {} in repository for sensorId: {}", lastUpdatedAt, sensorId);
-                if (lastUpdatedAt != null) {
-                    String rowKey = sensorId.getTrendId();
+                String rowKey = sensorId.getTrendId();
+                if (lastUpdatedAt != null && hasValue(rowKey)) {
+                    Map<String, Object> properties = new HashMap<>();
+                    lastUpdatedAt = lastUpdatedAt.truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+                    properties.put("LastUpdatedAt", lastUpdatedAt.toString());
                     String id = sensorId.getId();
+                    if (id != null) {
+                        properties.put("DigitalTwinSensorId", id);
+                    }
                     String desigoObjectId = sensorId.getDesigoId();
+                    if (desigoObjectId != null) {
+                        properties.put("DesigoId", desigoObjectId);
+                    }
                     String desigoPropertyId = sensorId.getDesigoPropertyId();
-                    String lastUpdatedAtString = lastUpdatedAt.toString();
-                    Map<String, Object> properties = Map.of(
-                            "DigitalTwinSensorId", id,
-                            "DesigoId", desigoObjectId,
-                            "DesigoPropertyId", desigoPropertyId,
-                            "LastUpdatedAt", lastUpdatedAtString
-                    );
-                    log.trace("trendsLastUpdated:Persisting rowKey {} with lastUpdatedAt {}", rowKey, lastUpdatedAt, properties);
+                    if (desigoPropertyId != null) {
+                        properties.put("DesigoPropertyId", desigoPropertyId);
+                    }
+                    log.trace("trendsLastUpdated:Persisting rowKey {} with lastUpdatedAt {}, properties {}", rowKey, lastUpdatedAt, properties);
                     lastUpdatedClient.updateRow(partitionKey, rowKey, properties);
+                    log.trace("trendsLastUpdated:Persisted rowKey {}", rowKey);
                     count++;
                 } else {
                     log.trace("trendsLastUpdated:Not persisting rowKey {} with lastUpdatedAt {} for sensorId: {}", sensorId.getTrendId(), lastUpdatedAt, sensorId);
@@ -212,7 +215,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
                         "DesigoPropertyId", desigoPropertyId,
                         "LastUpdatedAt", lastUpdatedAtString
                 );
-                lastUpdatedClient.updateRow(partitionKey, rowKey,properties);
+                lastUpdatedClient.updateRow(partitionKey, rowKey, properties);
             }
         }
         isHealthy = true;
