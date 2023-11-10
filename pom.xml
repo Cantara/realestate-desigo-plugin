@@ -5,7 +5,7 @@
 
   <groupId>no.cantara.realestate</groupId>
   <artifactId>desigo-plugin</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
+  <version>0.2.1-SNAPSHOT</version>
 
   <name>realestate-desigo-plugin</name>
   <url>https://github.com/Cantara/realestate-desigo-plugin</url>
