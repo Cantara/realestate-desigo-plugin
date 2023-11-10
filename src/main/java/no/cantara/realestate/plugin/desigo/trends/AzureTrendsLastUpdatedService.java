@@ -171,6 +171,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
                         "DesigoPropertyId", desigoPropertyId,
                         "LastUpdatedAt", lastUpdatedAtString
                 );
+                log.trace("trendsLastUpdated:Persisting rowKey {} with lastUpdatedAt {}", rowKey, lastUpdatedAt, properties);
                 lastUpdatedClient.updateRow(partitionKey, rowKey,properties);
                 count ++;
             } else {
