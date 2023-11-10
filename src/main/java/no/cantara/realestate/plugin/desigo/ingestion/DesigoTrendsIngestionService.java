@@ -23,7 +23,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static no.cantara.realestate.plugin.desigo.utils.DesigoConstants.auditLog;
 import static no.cantara.realestate.utils.StringUtils.hasValue;
@@ -31,6 +30,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class DesigoTrendsIngestionService implements TrendsIngestionService {
     private static final Logger log = getLogger(no.cantara.realestate.plugin.desigo.ingestion.DesigoTrendsIngestionService.class);
+    public static final String BAS_URL_KEY = "sd.api.url";
     private ObservationListener observationListener;
     private NotificationListener notificationListener;
     private BasClient desigoApiClient;
@@ -123,7 +123,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                     numberOfMessagesFailed++;
                     trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
                     failedSensors.add((DesigoSensorId) sensorId);
-                    throw new RuntimeException(e);
+                    auditLog.trace("Ingest__Failed__TrendId__{}__sensorId__{}. Reason {}", trendId, sensorId, e.getMessage());
                 } catch (DesigoCloudConnectorException dce) {
                     numberOfMessagesFailed++;
                     trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
@@ -158,7 +158,10 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
     public boolean initialize(PluginConfig pluginConfig) {
         log.trace("DesigoTrendsIngestionService.initialize");
         this.config = pluginConfig;
-        apiUrl = config.asString("sd.api.url", "http://localhost:8080");
+        apiUrl = config.asString(BAS_URL_KEY, null);
+        if (!hasValue(apiUrl)) {
+            throw new DesigoCloudConnectorException("Failed to initialize DesigoTrendsIngestionService. Desigo." + BAS_URL_KEY + " is null or empty. Please set this property.");
+        }
         boolean initializationOk = false;
         if (desigoApiClient != null && !desigoApiClient.isHealthy()) {
             if (desigoApiClient instanceof DesigoApiClientRest) {

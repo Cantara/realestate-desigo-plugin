@@ -24,6 +24,8 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     private boolean isHealthy;
     private List<String> currentErrors = new ArrayList<>();
 
+    private static final String PARTITION_KEY = "Desigo";
+
 
     public AzureTrendsLastUpdatedService(PluginConfig config, TrendsLastUpdatedRepository repository) {
         this.config = config;
@@ -151,9 +153,11 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
 
     @Override
     public void persistLastUpdated(List<DesigoSensorId> sensorIds) {
-        String partitionKey = config.asString("trends.lastupdated.partitionKey", "Desigo");
+        int count = 0;
+        int notUpdated = 0;
+        log.trace("trendsLastUpdated:Persist last updated to AzureTableClient {} for sensorIds {}", lastUpdatedClient, sensorIds.size());
+        String partitionKey = config.asString("trends.lastupdated.partitionKey", PARTITION_KEY);
         for (DesigoSensorId sensorId : sensorIds) {
-            Instant hei = repository.getLastUpdated(sensorId);
             Instant lastUpdatedAt = repository.getTrendsLastUpdated().get(sensorId);
             if (lastUpdatedAt != null) {
                 String rowKey = sensorId.getTrendId();
@@ -168,8 +172,13 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
                         "LastUpdatedAt", lastUpdatedAtString
                 );
                 lastUpdatedClient.updateRow(partitionKey, rowKey,properties);
+                count ++;
+            } else {
+                notUpdated ++;
             }
+
         }
+        log.trace("trendsLastUpdated:Persisted {} sensorIds to AzureTable. Missing LastUpdatedAt count: {}", count, notUpdated);
     }
 
     @Override
