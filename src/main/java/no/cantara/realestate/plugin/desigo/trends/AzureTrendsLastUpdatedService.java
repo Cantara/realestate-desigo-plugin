@@ -183,7 +183,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
 
             }
         } catch (Exception e) {
-            log.error("trendsLastUpdated:Persisting {} sensorIds to AzureTable. Missing LastUpdatedAt count: {}. Exception: {}", count, notUpdated, e.getMessage());
+            log.error("trendsLastUpdated:Persisting {} sensorIds to AzureTable. Missing LastUpdatedAt count: {}. Exception: {}", count, notUpdated, e.getMessage(), e);
             throw e;
         }
         log.trace("trendsLastUpdated:Persisted {} sensorIds to AzureTable. Missing LastUpdatedAt count: {}", count, notUpdated);
