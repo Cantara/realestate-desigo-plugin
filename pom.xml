@@ -38,17 +38,11 @@
       <artifactId>typelib-java</artifactId>
       <version>0.4.2</version>
     </dependency>
-    <dependency>
-      <groupId>no.cantara.realestate</groupId>
-      <artifactId>azure-client-java</artifactId>
-      <version>0.4.1</version>
-    </dependency>
-
     <!-- Should be same as cloudconnector -->
     <dependency>
       <groupId>no.cantara.realestate</groupId>
       <artifactId>azure-client-java</artifactId>
-      <version>0.4.1-SNAPSHOT</version>
+      <version>0.4.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
