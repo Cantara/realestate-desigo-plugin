@@ -161,6 +161,10 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         try {
             for (DesigoSensorId sensorId : sensorIds) {
                 log.trace("trendsLastUpdated:Find LastUpdated in repository for sensorId: {}", sensorId);
+                log.trace("trendsLastUpdated:SensorId: {}", sensorId.toString());
+                log.trace("trendsLastUpdated:Repository: {}", repository.toString());
+                repository.getTrendsLastUpdated().forEach((k, v) -> log.trace("trendsLastUpdated:Repository:Key: {}, Value: {}", k, v));
+                log.trace("trendsLastUpdated:Repository:LastUpdated: {}", repository.getTrendsLastUpdated());
                 Instant lastUpdatedAt = repository.getTrendsLastUpdated().get(sensorId);
                 log.trace("trendsLastUpdated:Found LastUpdated {} in repository for sensorId: {}", lastUpdatedAt, sensorId);
                 if (lastUpdatedAt != null) {
