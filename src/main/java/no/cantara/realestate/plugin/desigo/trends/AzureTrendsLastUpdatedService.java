@@ -158,28 +158,33 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
         String partitionKey = config.asString("trends.lastupdated.partitionKey", PARTITION_KEY);
         log.trace("trendsLastUpdated:Persist last updated to AzureTableClient for {} sensorIds with PartitionKey: {} ", sensorIds.size(), partitionKey);
 
-        for (DesigoSensorId sensorId : sensorIds) {
-            Instant lastUpdatedAt = repository.getTrendsLastUpdated().get(sensorId);
-            if (lastUpdatedAt != null) {
-                String rowKey = sensorId.getTrendId();
-                String id = sensorId.getId();
-                String desigoObjectId = sensorId.getDesigoId();
-                String desigoPropertyId = sensorId.getDesigoPropertyId();
-                String lastUpdatedAtString = lastUpdatedAt.toString();
-                Map<String, Object> properties = Map.of(
-                        "DigitalTwinSensorId", id,
-                        "DesigoId", desigoObjectId,
-                        "DesigoPropertyId", desigoPropertyId,
-                        "LastUpdatedAt", lastUpdatedAtString
-                );
-                log.trace("trendsLastUpdated:Persisting rowKey {} with lastUpdatedAt {}", rowKey, lastUpdatedAt, properties);
-                lastUpdatedClient.updateRow(partitionKey, rowKey,properties);
-                count ++;
-            } else {
-                log.trace("trendsLastUpdated:Not persisting rowKey {} with lastUpdatedAt {} for sensorId: {}", sensorId.getTrendId(), lastUpdatedAt, sensorId);
-                notUpdated ++;
-            }
+        try {
+            for (DesigoSensorId sensorId : sensorIds) {
+                Instant lastUpdatedAt = repository.getTrendsLastUpdated().get(sensorId);
+                if (lastUpdatedAt != null) {
+                    String rowKey = sensorId.getTrendId();
+                    String id = sensorId.getId();
+                    String desigoObjectId = sensorId.getDesigoId();
+                    String desigoPropertyId = sensorId.getDesigoPropertyId();
+                    String lastUpdatedAtString = lastUpdatedAt.toString();
+                    Map<String, Object> properties = Map.of(
+                            "DigitalTwinSensorId", id,
+                            "DesigoId", desigoObjectId,
+                            "DesigoPropertyId", desigoPropertyId,
+                            "LastUpdatedAt", lastUpdatedAtString
+                    );
+                    log.trace("trendsLastUpdated:Persisting rowKey {} with lastUpdatedAt {}", rowKey, lastUpdatedAt, properties);
+                    lastUpdatedClient.updateRow(partitionKey, rowKey, properties);
+                    count++;
+                } else {
+                    log.trace("trendsLastUpdated:Not persisting rowKey {} with lastUpdatedAt {} for sensorId: {}", sensorId.getTrendId(), lastUpdatedAt, sensorId);
+                    notUpdated++;
+                }
 
+            }
+        } catch (Exception e) {
+            log.error("trendsLastUpdated:Persisting {} sensorIds to AzureTable. Missing LastUpdatedAt count: {}. Exception: {}", count, notUpdated, e.getMessage());
+            throw e;
         }
         log.trace("trendsLastUpdated:Persisted {} sensorIds to AzureTable. Missing LastUpdatedAt count: {}", count, notUpdated);
     }
