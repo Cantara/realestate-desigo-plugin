@@ -155,8 +155,9 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
     public void persistLastUpdated(List<DesigoSensorId> sensorIds) {
         int count = 0;
         int notUpdated = 0;
-        log.trace("trendsLastUpdated:Persist last updated to AzureTableClient {} for sensorIds {}", lastUpdatedClient, sensorIds.size());
         String partitionKey = config.asString("trends.lastupdated.partitionKey", PARTITION_KEY);
+        log.trace("trendsLastUpdated:Persist last updated to AzureTableClient for {} sensorIds with PartitionKey: {} ", sensorIds.size(), partitionKey);
+
         for (DesigoSensorId sensorId : sensorIds) {
             Instant lastUpdatedAt = repository.getTrendsLastUpdated().get(sensorId);
             if (lastUpdatedAt != null) {
@@ -175,6 +176,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService{
                 lastUpdatedClient.updateRow(partitionKey, rowKey,properties);
                 count ++;
             } else {
+                log.trace("trendsLastUpdated:Not persisting rowKey {} with lastUpdatedAt {} for sensorId: {}", sensorId.getTrendId(), lastUpdatedAt, sensorId);
                 notUpdated ++;
             }
 
