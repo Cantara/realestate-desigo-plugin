@@ -32,9 +32,9 @@ class DesigoTableSensorImporterTest {
         assertTrue(config.asBoolean("Desigo.sensormappings.table.enabled", false), "sensormappings.table.enabled should be true");
 
         List<Map<String, String>> tableRows = List.of(
-                Map.of("DigitalTwinId", "SensorId1","DesigoId", "d1", "DesigoPropertyId", "p1", "DesigoTrendId", "t1", "Tfm", "tfm1", "RecId", "rec1"),
-                Map.of("DigitalTwinId", "SensorId2","DesigoId", "2", "DesigoPropertyId", "2", "DesigoTrendId", "2"),
-                Map.of("DigitalTwinId", "SensorId3","DesigoId", "3", "DesigoPropertyId", "3", "DesigoTrendId", "3")
+                Map.of("DigitalTwinSensorId", "SensorId1","DesigoId", "d1", "DesigoPropertyId", "p1", "DesigoTrendId", "t1", "Tfm", "tfm1", "RecId", "rec1"),
+                Map.of("DigitalTwinSensorId", "SensorId2","DesigoId", "2", "DesigoPropertyId", "2", "DesigoTrendId", "2"),
+                Map.of("DigitalTwinSensorId", "SensorId3","DesigoId", "3", "DesigoPropertyId", "3", "DesigoTrendId", "3")
         );
         importer = new DesigoTableSensorImporter(tableRows);
     }

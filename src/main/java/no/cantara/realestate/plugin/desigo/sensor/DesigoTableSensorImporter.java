@@ -32,8 +32,8 @@ public class DesigoTableSensorImporter implements SensorImporter {
             if (row.containsKey("DesigoTrendId")) {
                 ((DesigoSensorId) sensorId).setTrendId(row.get("DesigoTrendId"));
             }
-            if (row.containsKey("DigitalTwinId")) {
-                sensorId.setId(row.get("DigitalTwinId"));
+            if (row.containsKey("DigitalTwinSensorId")) {
+                sensorId.setId(row.get("DigitalTwinSensorId"));
             } else if (row.containsKey("RecId")) {
                 sensorId.setId(row.get("RecId"));
             }
