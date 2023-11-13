@@ -59,6 +59,7 @@ class DesigoTableSensorImporterTest {
         assertEquals(3, mappedIds.size());
         MappedSensorId mappedId = mappedIds.get(0);
         DesigoSensorId sensorId = (DesigoSensorId) mappedId.getSensorId();
+        assertEquals("SensorId1", sensorId.getId());
         assertEquals("d1", sensorId.getDesigoId());
         assertEquals("p1", sensorId.getDesigoPropertyId());
         assertEquals("t1", sensorId.getTrendId());
