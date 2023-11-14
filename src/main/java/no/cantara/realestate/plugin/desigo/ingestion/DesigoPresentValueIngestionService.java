@@ -2,6 +2,7 @@ package no.cantara.realestate.plugin.desigo.ingestion;
 
 import no.cantara.realestate.automationserver.BasClient;
 import no.cantara.realestate.observations.ObservationListener;
+import no.cantara.realestate.observations.ObservedPresentValue;
 import no.cantara.realestate.observations.ObservedValue;
 import no.cantara.realestate.observations.PresentValue;
 import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
@@ -62,7 +63,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
         for (SensorId sensorId : sensorIds) {
             try {
                 PresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
-                ObservedValue observedValue = new ObservedValue(sensorId, presentValue.getValue());
+                ObservedValue observedValue = new ObservedPresentValue(sensorId, presentValue.getValue());
                 observedValue.setObservedAt(presentValue.getObservedAt());
                 observedValue.setReliable(presentValue.getReliable());
                 observationListener.observedValue(observedValue);

@@ -2,6 +2,7 @@ package no.cantara.realestate.plugin.desigo.ingestion;
 
 import no.cantara.realestate.automationserver.BasClient;
 import no.cantara.realestate.observations.ObservationListener;
+import no.cantara.realestate.observations.ObservedTrendedValue;
 import no.cantara.realestate.observations.ObservedValue;
 import no.cantara.realestate.observations.TrendSample;
 import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
@@ -103,7 +104,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                     }
                     for (TrendSample trendValue : trendSamples) {
                         trendValue = (DesigoTrendSample) trendValue;
-                        ObservedValue observedValue = new ObservedValue(sensorId, trendValue.getValue());
+                        ObservedValue observedValue = new ObservedTrendedValue(sensorId, trendValue.getValue());
                         if (trendValue.getObservedAt() != null) {
                             observedValue.setObservedAt(trendValue.getObservedAt());
                         }
