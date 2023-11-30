@@ -2,6 +2,12 @@ package no.cantara.realestate.plugin.desigo.automationserver;
 
 
 import com.google.common.net.HttpHeaders;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import no.cantara.realestate.RealEstateException;
 import no.cantara.realestate.automationserver.BasClient;
 import no.cantara.realestate.json.RealEstateObjectMapper;
@@ -61,11 +67,18 @@ public class DesigoApiClientRest implements BasClient {
     private String username;
     private String password;
 
+    final Tracer tracer;
+    final Meter meter;
+
     public DesigoApiClientRest(URI apiUri) {
+        tracer = GlobalOpenTelemetry.getTracer("no.cantara.realestate");
+        meter = GlobalOpenTelemetry.getMeter("no.cantara.realestate");
         this.apiUri = apiUri;
     }
 
     public DesigoApiClientRest(URI apiUri, String username, String password, NotificationListener notificationListener) {
+        tracer = GlobalOpenTelemetry.getTracer("no.cantara.realestate");
+        meter = GlobalOpenTelemetry.getMeter("no.cantara.realestate");
         this.apiUri = apiUri;
         this.username = username;
         this.password = password;
@@ -80,20 +93,24 @@ public class DesigoApiClientRest implements BasClient {
     }
 
 
-
     @Override
     public Set<TrendSample> findTrendSamples(String bearerToken, String trendId) throws URISyntaxException {
-        throw new RealEstateException("Not Implemented");
+        RealEstateException re = new RealEstateException("Not Implemented");
+        tracer.spanBuilder("findTrendSamples").setSpanKind(SpanKind.INTERNAL).startSpan().recordException(re);
+        throw re;
     }
 
     @Override
     public Set<TrendSample> findTrendSamples(String s, int i, int i1) throws URISyntaxException, LogonFailedException {
-        throw new RealEstateException("Not Implemented");
+        RealEstateException re = new RealEstateException("Not Implemented");
+        tracer.spanBuilder("findTrendSamples").setSpanKind(SpanKind.INTERNAL).startSpan().recordException(re);
+        throw re;
     }
 
 
     @Override
     public Set<TrendSample> findTrendSamplesByDate(String trendId, int take, int skip, Instant onAndAfterDateTime) throws URISyntaxException, LogonFailedException {
+        Span span = tracer.spanBuilder("findTrendSamplesByDate").setSpanKind(SpanKind.CLIENT).startSpan();
         log.trace("findTrendSamplesByDate. trendId: {}. From date: {}. Take: {}. Skip: {}",
                 trendId, onAndAfterDateTime, take, skip);
         String bearerToken = findAccessToken();
@@ -101,12 +118,12 @@ public class DesigoApiClientRest implements BasClient {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet request = null;
         List<DesigoTrendSample> trendSamples = new ArrayList<>();
-        try {
+        try (Scope ignored = span.makeCurrent()) {
 
             String startTime = instantWithSecondsAccuracy(onAndAfterDateTime);
             log.trace("validate From date: onAndAfterDateTime: {}. startTime: {} should be simmilar", onAndAfterDateTime, startTime);
-            int page=1;
-            int pageSize=1000;
+            int page = 1;
+            int pageSize = 1000;
             String endTime = Instant.now().plusSeconds(60).truncatedTo(ChronoUnit.SECONDS).toString();
 //            log.trace("findTrendSamplesByDate. trendId: {}. From date: {}. To date: {}. Page: {}. PageSize: {}. Take: {}. Skip: {}",
 //                    trendId, startTime, endTime, page, pageSize, take, skip);
@@ -141,16 +158,22 @@ public class DesigoApiClientRest implements BasClient {
                         }
 
                     }
+                } else {
+                    span.addEvent("warning-response-code-not-200");
                 }
             } catch (Exception e) {
                 setUnhealthy();
-                throw new DesigoCloudConnectorException("Failed to fetch trendsamples for objectId " + trendId
-                        + ", after date "+ onAndAfterDateTime + ". Reason: " + e.getMessage(), e);
+                DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to fetch trendsamples for objectId " + trendId
+                        + ", after date " + onAndAfterDateTime + ". Reason: " + e.getMessage(), e);
+                span.recordException(de);
+                throw de;
             }
         } catch (Exception e) {
             setUnhealthy();
-            throw new DesigoCloudConnectorException("Failed to fetch trendsamples for objectId " + trendId
-                    + ", after date "+ onAndAfterDateTime + ". Reason: " + e.getMessage(), e);
+            DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to fetch trendsamples for objectId " + trendId
+                    + ", after date " + onAndAfterDateTime + ". Reason: " + e.getMessage(), e);
+            span.recordException(de);
+            throw de;
         }
 
         /*
@@ -182,6 +205,8 @@ public class DesigoApiClientRest implements BasClient {
         log.trace("findTrendSamplesByDate. trendId: {}. From date: {}. Take: {}. Skip: {}. Found: {}",
                 trendId, onAndAfterDateTime, take, skip, trendSamples.size());
         isHealthy = true;
+        meter.histogramBuilder("OTEL.AzureMonitor.Desigo.TrendSamples").build().record(trendSamples.size());
+        span.end();
         return new HashSet<>(trendSamples);
     }
 
@@ -191,6 +216,7 @@ public class DesigoApiClientRest implements BasClient {
 
     @Override
     public DesigoPresentValue findPresentValue(SensorId sensorId) throws URISyntaxException, LogonFailedException {
+        Span span = tracer.spanBuilder("findPresentValue").setSpanKind(SpanKind.CLIENT).startSpan();
         DesigoPresentValue presentValue = null;
         DesigoSensorId desigoSensorId = (DesigoSensorId) sensorId;
         String objectOrPropertyId = desigoSensorId.getDesigoId() + "." + desigoSensorId.getDesigoPropertyId();
@@ -199,8 +225,8 @@ public class DesigoApiClientRest implements BasClient {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet request = null;
         List<DesigoTrendSample> trendSamples = new ArrayList<>();
-        try {
-            log.trace("findPresentValue. objectOrPropertyId: {}.",objectOrPropertyId);
+        try (Scope ignored = span.makeCurrent()) {
+            log.trace("findPresentValue. objectOrPropertyId: {}.", objectOrPropertyId);
             request = new HttpGet(presentValueUri);
             request.addHeader(HttpHeaders.ACCEPT, "application/json");
             request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken);
@@ -218,6 +244,7 @@ public class DesigoApiClientRest implements BasClient {
                             if (presentValues != null) {
                                 log.trace("Found: {} presentValues from objectOrPropertyId: {}", presentValues.length, objectOrPropertyId);
                                 presentValue = presentValues[0];
+                                meter.counterBuilder("OTEL.AzureMonitor.Desigo.PresentValues").build().add(1);
                             }
                         } else {
                             presentValue = PresentValueMapper.mapFromJson(body);
@@ -226,24 +253,30 @@ public class DesigoApiClientRest implements BasClient {
                 }
             } catch (Exception e) {
                 setUnhealthy();
-                throw new DesigoCloudConnectorException("Failed to fetch presentValue for sensorId " + desigoSensorId + ". Reason: " + e.getMessage(), e);
+                DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to fetch presentValue for sensorId " + desigoSensorId + ". Reason: " + e.getMessage(), e);
+                span.recordException(de);
+                throw de;
             }
         } catch (Exception e) {
             setUnhealthy();
-            throw new DesigoCloudConnectorException("Failed to fetch presentValue for sensorId " + desigoSensorId + ". Reason: " + e.getMessage(), e);
+            DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to fetch presentValue for sensorId " + desigoSensorId + ". Reason: " + e.getMessage(), e);
+            span.recordException(de);
+            throw de;
         }
+        span.end();
         return presentValue;
     }
 
     @Override
     public Integer subscribePresentValueChange(String subscriptionId, String objectId) throws URISyntaxException, LogonFailedException {
+        Span span = tracer.spanBuilder("subscribePresentValueChange").setSpanKind(SpanKind.CLIENT).startSpan();
         Integer statusCode = null;
 
         String bearerToken = findAccessToken();
-        URI subscribeUri = new URI(apiUri + "objects/" + objectId+"/attributes/presentValue?includeSchema=false");
+        URI subscribeUri = new URI(apiUri + "objects/" + objectId + "/attributes/presentValue?includeSchema=false");
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet request = null;
-        try {
+        try (Scope ignored = span.makeCurrent()) {
             request = new HttpGet(subscribeUri);
             request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken);
             request.addHeader(DESIGO_SUBSCRIBE_HEADER, subscriptionId);
@@ -253,23 +286,30 @@ public class DesigoApiClientRest implements BasClient {
                 statusCode = response.getCode();
                 if (statusCode == 202) {
                     log.trace("Subscribing ok for objectId: {}", objectId);
+                    meter.counterBuilder("OTEL.AzureMonitor.Desigo.PresentValues.Subscriptions").build().add(1);
                 } else {
                     String body = "";
                     if (entity != null) {
                         body = EntityUtils.toString(entity);
                     }
                     log.trace("Could not subscribe to subscription {} for objectId {} using URL: {}. Status: {}. Body text: {}", subscriptionId, objectId, subscribeUri, statusCode, body);
+                    span.addEvent("info-subscribe-failed");
                 }
             } catch (Exception e) {
                 setUnhealthy();
-                throw new DesigoCloudConnectorException("Failed to subscribe to objectId " + objectId
+                DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to subscribe to objectId " + objectId
                         + ". Reason: " + e.getMessage(), e);
+                span.recordException(de);
+                throw de;
             }
         } catch (Exception e) {
             setUnhealthy();
-            throw new DesigoCloudConnectorException("Failed to subscribe to objectId " + objectId
+            DesigoCloudConnectorException de = new DesigoCloudConnectorException("Failed to subscribe to objectId " + objectId
                     + ". Reason: " + e.getMessage(), e);
+            span.recordException(de);
+            throw de;
         }
+        span.end();
         return statusCode;
 
     }
@@ -300,7 +340,7 @@ public class DesigoApiClientRest implements BasClient {
             }
             request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
 
-            log.trace("Try to logon to Desigo at uri: {}",refreshTokenUrl);
+            log.trace("Try to logon to Desigo at uri: {}", refreshTokenUrl);
             CloseableHttpResponse response = httpClient.execute(request);
             try {
                 int httpCode = response.getCode();
@@ -323,7 +363,7 @@ public class DesigoApiClientRest implements BasClient {
                     LogonFailedException logonFailedException = new LogonFailedException(msg);
                     log.warn("Failed to refresh accessToken on Desigo. Reason {}", logonFailedException.getMessage());
                     setUnhealthy();
-                    notificationListener.addError(PLUGIN_ID, DESIGO_API,"Failed to refresh accessToken on Desigo. Reason: " + logonFailedException.getMessage());
+                    notificationListener.addError(PLUGIN_ID, DESIGO_API, "Failed to refresh accessToken on Desigo. Reason: " + logonFailedException.getMessage());
                     throw logonFailedException;
                 }
 
@@ -331,21 +371,21 @@ public class DesigoApiClientRest implements BasClient {
                 response.close();
             }
         } catch (IOException e) {
-            notificationListener.sendAlarm(PLUGIN_ID, DESIGO_API,HOST_UNREACHABLE);
+            notificationListener.sendAlarm(PLUGIN_ID, DESIGO_API, HOST_UNREACHABLE);
             String msg = "Failed to refresh accessToken on Desigo at uri: " + refreshTokenUrl + ", with accessToken: " + truncatedAccessToken;
             LogonFailedException logonFailedException = new LogonFailedException(msg, e);
             log.warn(msg);
             setUnhealthy();
-            notificationListener.addError(PLUGIN_ID, DESIGO_API,msg + " Reason: " + logonFailedException.getMessage() );
+            notificationListener.addError(PLUGIN_ID, DESIGO_API, msg + " Reason: " + logonFailedException.getMessage());
             throw logonFailedException;
         } catch (ParseException e) {
-            notificationListener.sendWarning(PLUGIN_ID, DESIGO_API,"Parsing of AccessToken information failed.");
+            notificationListener.sendWarning(PLUGIN_ID, DESIGO_API, "Parsing of AccessToken information failed.");
             String msg = "Failed to refresh accessToken on Desigo at uri: " + refreshTokenUrl + ", with accessToken: " + truncatedAccessToken +
                     ". Failure parsing the response.";
             LogonFailedException logonFailedException = new LogonFailedException(msg, e);
             log.warn(msg);
             setUnhealthy();
-            notificationListener.addError(PLUGIN_ID, DESIGO_API,msg + " Reason: " + logonFailedException.getMessage());
+            notificationListener.addError(PLUGIN_ID, DESIGO_API, msg + " Reason: " + logonFailedException.getMessage());
             throw logonFailedException;
         } finally {
             try {
@@ -361,6 +401,7 @@ public class DesigoApiClientRest implements BasClient {
     public void logon() throws LogonFailedException {
         logon(username, password);
     }
+
     protected void logon(String username, String password) throws LogonFailedException {
         if (!hasValue(username)) {
             log.warn("Trying to logon with username null. Please call openConnection(username, password) first.");
@@ -415,7 +456,7 @@ public class DesigoApiClientRest implements BasClient {
                             ". RequestMethod: " + request.getMethod() +
                             ". ResponseCode: " + httpCode +
                             ". ReasonPhrase: " + response.getReasonPhrase() +
-                            ". ResponseHeaders: " + responseHeaders  +
+                            ". ResponseHeaders: " + responseHeaders +
                             ". Body text: " + body;
                     LogonFailedException logonFailedException = new LogonFailedException(msg);
                     log.warn("Failed to logon to Desigo. Reason {}", logonFailedException.getMessage());
@@ -467,6 +508,7 @@ public class DesigoApiClientRest implements BasClient {
     public String getName() {
         return "DesigoApiClientRest";
     }
+
     void setHealthy() {
         if (!this.isHealthy) {
             this.isHealthy = true;
@@ -499,7 +541,7 @@ public class DesigoApiClientRest implements BasClient {
 
     synchronized void addNumberOfTrendSamplesReceived() {
         if (numberOfTrendSamplesReceived < Long.MAX_VALUE) {
-            numberOfTrendSamplesReceived ++;
+            numberOfTrendSamplesReceived++;
         } else {
             numberOfTrendSamplesReceived = 1;
         }
@@ -518,12 +560,12 @@ public class DesigoApiClientRest implements BasClient {
             if (userToken != null) {
                 accessToken = userToken.getAccessToken();
             } else {
-                notificationListener.clearService(PLUGIN_ID,DESIGO_API);
+                notificationListener.clearService(PLUGIN_ID, DESIGO_API);
             }
 
             return accessToken;
-        } catch (LogonFailedException e){
-            notificationListener.sendAlarm(PLUGIN_ID,DESIGO_API,LOGON_FAILED);
+        } catch (LogonFailedException e) {
+            notificationListener.sendAlarm(PLUGIN_ID, DESIGO_API, LOGON_FAILED);
             isHealthy = false;
             throw e;
         }
