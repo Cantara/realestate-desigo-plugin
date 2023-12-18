@@ -21,6 +21,8 @@ class DesigoPresentValueIngestionServiceTest {
     private PluginConfig config;
     private NotificationListener notificationListener;
     private DesigoApiClientRest desigoApiClient;
+    private DesigoSensorId sensorId;
+    private DesigoPresentValue presentValue;
 
     @BeforeEach
     void setUp() {
@@ -29,15 +31,29 @@ class DesigoPresentValueIngestionServiceTest {
         this.config = mock(PluginConfig.class);
         this.desigoApiClient = mock(DesigoApiClientRest.class);
         this.ingestionService = new DesigoPresentValueIngestionService( config, observationListener, notificationListener, desigoApiClient);
+        sensorId = new DesigoSensorId("desigoId1", "propertyId2");
+        ingestionService.addSubscription(sensorId);
+        presentValue = new DesigoPresentValue();
+        presentValue.setValue(1234L);
+        presentValue.setSensorId("sensor1");
     }
 
     @Test
     void ingestPresentValues() throws URISyntaxException {
-        DesigoPresentValue presentValue = new DesigoPresentValue();
-        presentValue.setValue(1234L);
-        presentValue.setSensorId("sensor1");
-        DesigoSensorId sensorId = new DesigoSensorId("desigoId1", "propertyId2");
-        ingestionService.addSubscription(sensorId);
+        when(desigoApiClient.findPresentValue(any())).thenReturn(presentValue);
+        ingestionService.ingestPresentValues();
+        verify(observationListener, times(1)).observedValue(any());
+    }
+
+    @Test
+    void ingestPresentValuesIsNull() throws URISyntaxException {
+        presentValue.setReliable(null);
+        when(desigoApiClient.findPresentValue(any())).thenReturn(presentValue);
+        ingestionService.ingestPresentValues();
+        verify(observationListener, times(1)).observedValue(any());
+    }
+    @Test
+    void ingestPresentValuesIsReliable() throws URISyntaxException {
         when(desigoApiClient.findPresentValue(any())).thenReturn(presentValue);
         ingestionService.ingestPresentValues();
         verify(observationListener, times(1)).observedValue(any());
