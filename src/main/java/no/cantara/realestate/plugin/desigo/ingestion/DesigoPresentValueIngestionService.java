@@ -65,7 +65,9 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
                 PresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
                 ObservedValue observedValue = new ObservedPresentValue(sensorId, presentValue.getValue());
                 observedValue.setObservedAt(presentValue.getObservedAt());
-                observedValue.setReliable(presentValue.getReliable());
+                if (presentValue.getReliable() != null) {
+                    observedValue.setReliable(presentValue.getReliable());
+                }
                 observationListener.observedValue(observedValue);
             } catch (URISyntaxException e) {
                 log.error("Failed to get sensor observations from Desigo CC API {} using sensorId {}", apiUri, sensorId, e);
