@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static no.cantara.realestate.plugin.desigo.utils.DesigoConstants.auditLog;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class DesigoPresentValueIngestionService implements PresentValueIngestionService {
@@ -62,12 +63,15 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
         log.debug("Ingesting present values from Desigo CC API {} using sensorIds {}", apiUri, sensorIds);
         for (SensorId sensorId : sensorIds) {
             try {
+                auditLog.trace("Ingest__PresentValueFindValue__{}__{}", sensorId.getId(), sensorId.getClass());
                 PresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
+                auditLog.trace("Ingest__PresentValue__{}__{}__{}__{}", sensorId.getId(), presentValue.getClass(),presentValue.getValue(),presentValue.getObservedAt());
                 ObservedValue observedValue = new ObservedPresentValue(sensorId, presentValue.getValue());
                 observedValue.setObservedAt(presentValue.getObservedAt());
                 if (presentValue.getReliable() != null) {
                     observedValue.setReliable(presentValue.getReliable());
                 }
+                auditLog.trace("Ingest__PresentValue__Observed__{}__{}__{}__{}__{}", sensorId.getId(), observedValue.getClass(),presentValue.getValue(),presentValue.getObservedAt(), observedValue);
                 observationListener.observedValue(observedValue);
             } catch (URISyntaxException e) {
                 log.error("Failed to get sensor observations from Desigo CC API {} using sensorId {}", apiUri, sensorId, e);
