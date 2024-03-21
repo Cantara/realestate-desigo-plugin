@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +68,12 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
                 PresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
                 auditLog.trace("Ingest__PresentValue__{}__{}__{}__{}", sensorId.getId(), presentValue.getClass(),presentValue.getValue(),presentValue.getObservedAt());
                 ObservedValue observedValue = new ObservedPresentValue(sensorId, presentValue.getValue());
-                observedValue.setObservedAt(presentValue.getObservedAt());
+                if (presentValue.getObservedAt() != null) {
+                    observedValue.setObservedAt(presentValue.getObservedAt());
+                } else {
+                    log.trace("PresentValue.getObservedAt() is null. Setting to now");
+                    observedValue.setObservedAt(Instant.now());
+                }
                 if (presentValue.getReliable() != null) {
                     observedValue.setReliable(presentValue.getReliable());
                 }
