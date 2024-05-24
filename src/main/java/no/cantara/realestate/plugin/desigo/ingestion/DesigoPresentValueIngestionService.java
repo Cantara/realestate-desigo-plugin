@@ -66,19 +66,25 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
             try {
                 auditLog.trace("Ingest__PresentValueFindValue__{}__{}", sensorId.getId(), sensorId.getClass());
                 PresentValue presentValue = desigoApiClient.findPresentValue(sensorId);
-                auditLog.trace("Ingest__PresentValue__{}__{}__{}__{}", sensorId.getId(), presentValue.getClass(),presentValue.getValue(),presentValue.getObservedAt());
-                ObservedValue observedValue = new ObservedPresentValue(sensorId, presentValue.getValue());
-                if (presentValue.getObservedAt() != null) {
-                    observedValue.setObservedAt(presentValue.getObservedAt());
+                if (presentValue != null) {
+                    auditLog.trace("Ingest__PresentValue__{}__{}__{}__{}", sensorId.getId(), presentValue.getClass(), presentValue.getValue(), presentValue.getObservedAt());
+                    ObservedValue observedValue = new ObservedPresentValue(sensorId, presentValue.getValue());
+                    if (presentValue.getObservedAt() != null) {
+                        observedValue.setObservedAt(presentValue.getObservedAt());
+                    } else {
+                        log.trace("PresentValue.getObservedAt() is null. Setting to now");
+                        observedValue.setObservedAt(Instant.now());
+                    }
+                    if (presentValue.getReliable() != null) {
+                        observedValue.setReliable(presentValue.getReliable());
+                    }
+                    auditLog.trace("Ingest__PresentValue__Observed__{}__{}__{}__{}__{}", sensorId.getId(), observedValue.getClass(), presentValue.getValue(), presentValue.getObservedAt(), observedValue);
+                    numberOfMessagesImported++;
+                    observationListener.observedValue(observedValue);
                 } else {
-                    log.trace("PresentValue.getObservedAt() is null. Setting to now");
-                    observedValue.setObservedAt(Instant.now());
+                    auditLog.trace("Ingest__PresentValueFindValue__Is_Null__{}__{}", sensorId.getId(), sensorId.getClass());
+                    numberOfMessagesFailed++;
                 }
-                if (presentValue.getReliable() != null) {
-                    observedValue.setReliable(presentValue.getReliable());
-                }
-                auditLog.trace("Ingest__PresentValue__Observed__{}__{}__{}__{}__{}", sensorId.getId(), observedValue.getClass(),presentValue.getValue(),presentValue.getObservedAt(), observedValue);
-                observationListener.observedValue(observedValue);
             } catch (URISyntaxException e) {
                 log.error("Failed to get sensor observations from Desigo CC API {} using sensorId {}", apiUri, sensorId, e);
                 throw new DesigoCloudConnectorException("Could not get sensor observations from " + apiUri + ". URI is illegal", e);
