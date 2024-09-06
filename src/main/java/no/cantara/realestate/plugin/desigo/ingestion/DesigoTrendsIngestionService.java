@@ -110,29 +110,29 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                         }
                         auditLog.trace("Ingest__TrendObserved__{}__{}__{}__{}__{}", trendId, observedValue.getClass(), observedValue.getSensorId().getId(), observedValue.getValue(), observedValue.getObservedAt());
                         observationListener.observedValue(observedValue);
-                        numberOfMessagesImported++;
+                        addMessagesImportedCount();
                         trendsLastUpdatedService.setLastUpdatedAt((DesigoSensorId) sensorId, trendValue.getObservedAt());
                     }
                     updatedSensors.add((DesigoSensorId) sensorId);
                 } catch (LogonFailedException e) {
-                    numberOfMessagesFailed++;
+                    addMessagesFailedCount();
                     trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
                     failedSensors.add((DesigoSensorId) sensorId);
                     log.error("Failed to logon to Desigo CC API {} using username {}", apiUrl, config.asString("sd.api.username", "admin"), e);
                     throw new DesigoCloudConnectorException("Could not ingest trends for " + getName() + " Logon failed to " + apiUrl + ", using username: " + config.asString("sd.api.username", "admin"), e);
                 } catch (URISyntaxException e) {
-                    numberOfMessagesFailed++;
+                    addMessagesFailedCount();
                     trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
                     failedSensors.add((DesigoSensorId) sensorId);
                     auditLog.trace("Ingest__Failed__TrendId__{}__sensorId__{}. Reason {}", trendId, sensorId, e.getMessage());
                 } catch (DesigoCloudConnectorException dce) {
-                    numberOfMessagesFailed++;
+                    addMessagesFailedCount();
                     trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
                     failedSensors.add((DesigoSensorId) sensorId);
                     log.debug("Failed to ingest trends for TrendId {} sensorId {}.", trendId, sensorId, dce);
                     auditLog.trace("Ingest__TrendImportFailed__{}__{}__{}__{}", trendId, sensorId.getId(), ((DesigoSensorId) sensorId).getDesigoPropertyId(), dce.getMessage());
                 } catch (Exception e) {
-                    numberOfMessagesFailed++;
+                    addMessagesFailedCount();
                     trendsLastUpdatedService.setLastFailedAt((DesigoSensorId) sensorId, Instant.now());
                     failedSensors.add((DesigoSensorId) sensorId);
                     log.debug("Failed to ingest trends for sensorId {}.", sensorId, e);
@@ -257,6 +257,13 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
     @Override
     public long getNumberOfMessagesFailed() {
         return numberOfMessagesFailed;
+    }
+    synchronized void addMessagesImportedCount() {
+        numberOfMessagesImported++;
+    }
+
+    synchronized void addMessagesFailedCount() {
+        numberOfMessagesFailed++;
     }
 
     protected PluginConfig getConfig() {

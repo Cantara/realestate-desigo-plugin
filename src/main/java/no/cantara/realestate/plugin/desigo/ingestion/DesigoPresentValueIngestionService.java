@@ -79,11 +79,11 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
                         observedValue.setReliable(presentValue.getReliable());
                     }
                     auditLog.trace("Ingest__PresentValue__Observed__{}__{}__{}__{}__{}", sensorId.getId(), observedValue.getClass(), presentValue.getValue(), presentValue.getObservedAt(), observedValue);
-                    numberOfMessagesImported++;
+                    addMessagesImportedCount();
                     observationListener.observedValue(observedValue);
                 } else {
                     auditLog.trace("Ingest__PresentValueFindValue__Is_Null__{}__{}", sensorId.getId(), sensorId.getClass());
-                    numberOfMessagesFailed++;
+                    addMessagesFailedCount();
                 }
             } catch (URISyntaxException e) {
                 log.error("Failed to get sensor observations from Desigo CC API {} using sensorId {}", apiUri, sensorId, e);
@@ -96,6 +96,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
         }
 
     }
+
 
     @Override
     public String getName() {
@@ -179,7 +180,9 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
 
     @Override
     public boolean isHealthy() {
-        return true;
+        boolean isLoggedIn = desigoApiClient.isLoggedIn();
+        boolean basClientIsHealthy = desigoApiClient.isHealthy();
+        return isLoggedIn && basClientIsHealthy;
     }
 
     @Override
@@ -190,5 +193,13 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
     @Override
     public long getNumberOfMessagesFailed() {
         return numberOfMessagesFailed;
+    }
+
+    synchronized void addMessagesImportedCount() {
+        numberOfMessagesImported++;
+    }
+
+    synchronized void addMessagesFailedCount() {
+        numberOfMessagesFailed++;
     }
 }
