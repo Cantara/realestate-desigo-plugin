@@ -4,6 +4,7 @@ import no.cantara.realestate.importer.SensorImporter;
 import no.cantara.realestate.semantics.rec.SensorRecObject;
 import no.cantara.realestate.sensors.MappedSensorId;
 import no.cantara.realestate.sensors.SensorId;
+import no.cantara.realestate.sensors.SensorSystem;
 import no.cantara.realestate.sensors.desigo.DesigoSensorId;
 import org.slf4j.Logger;
 
@@ -63,5 +64,23 @@ public class DesigoTableSensorImporter implements SensorImporter {
             mappedSensorIds.add(mappedSensorId);
         }
         return mappedSensorIds;
+    }
+
+    @Override
+    public List<SensorId> importSensorIds(SensorSystem sensorSystem) {
+        List<SensorId> sensorIds = new ArrayList<>();
+        for (Map<String, String> row : tableRows) {
+            SensorId sensorId = new DesigoSensorId(row.get("DesigoId"), row.get("DesigoPropertyId"));
+            if (row.containsKey("DesigoTrendId")) {
+                ((DesigoSensorId) sensorId).setTrendId(row.get("DesigoTrendId"));
+            }
+            if (row.containsKey("DigitalTwinSensorId")) {
+                sensorId.setId(row.get("DigitalTwinSensorId"));
+            } else if (row.containsKey("RecId")) {
+                sensorId.setId(row.get("RecId"));
+            }
+            sensorIds.add(sensorId);
+        }
+        return sensorIds;
     }
 }

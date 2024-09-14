@@ -8,19 +8,17 @@ import no.cantara.realestate.observations.ObservationListener;
 import no.cantara.realestate.observations.ObservedValue;
 import no.cantara.realestate.plugin.desigo.DesigoRealEstatePluginFactory;
 import no.cantara.realestate.plugin.desigo.automationserver.SdClientSimulator;
-import no.cantara.realestate.plugin.desigo.sensor.DesigoCsvSensorImporter;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingSimulator;
 import no.cantara.realestate.plugins.RealEstatePluginFactory;
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.ingestion.IngestionService;
 import no.cantara.realestate.plugins.notifications.NotificationListener;
 import no.cantara.realestate.sensors.SensorId;
-import no.cantara.realestate.sensors.desigo.DesigoSensorId;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -112,6 +110,11 @@ public class DesigoTrendsIngestionFlowTest {
             @Override
             public void observedConfigMessage(ConfigMessage configMessage) {
 
+            }
+
+            @Override
+            public Instant getWhenLastMessageObserved() {
+                return Instant.ofEpochMilli(System.currentTimeMillis());
             }
         };
         return listener;

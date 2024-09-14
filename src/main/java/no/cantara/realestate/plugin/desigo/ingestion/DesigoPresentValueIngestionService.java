@@ -35,6 +35,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
     private ArrayList<SensorId> sensorIds;
     private long numberOfMessagesImported = 0;
     private long numberOfMessagesFailed = 0;
+    private Instant lastObservationReceievedAt = null;
 
     /**
      * Used for testing
@@ -80,6 +81,7 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
                     }
                     auditLog.trace("Ingest__PresentValue__Observed__{}__{}__{}__{}__{}", sensorId.getId(), observedValue.getClass(), presentValue.getValue(), presentValue.getObservedAt(), observedValue);
                     addMessagesImportedCount();
+                    updateWhenLastObservationReceived();
                     observationListener.observedValue(observedValue);
                 } else {
                     auditLog.trace("Ingest__PresentValueFindValue__Is_Null__{}__{}", sensorId.getId(), sensorId.getClass());
@@ -201,5 +203,18 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
 
     synchronized void addMessagesFailedCount() {
         numberOfMessagesFailed++;
+    }
+
+    protected synchronized void updateWhenLastObservationReceived() {
+        lastObservationReceievedAt = Instant.ofEpochMilli(System.currentTimeMillis());
+    }
+
+    @Override
+    public Instant getWhenLastMessageImported() {
+        return lastObservationReceievedAt;
+    }
+
+    protected void setWhenLastObservationReceivedAt(Instant lastObservationReceievedAt) {
+        this.lastObservationReceievedAt = lastObservationReceievedAt;
     }
 }

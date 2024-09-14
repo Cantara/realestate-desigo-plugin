@@ -7,6 +7,7 @@ import no.cantara.realestate.plugins.ingestion.TrendsIngestionService;
 import no.cantara.realestate.plugins.notifications.NotificationListener;
 import no.cantara.realestate.sensors.SensorId;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class DesigoTrendsIngestionServiceSimulator implements TrendsIngestionSer
     private List<SensorId> sensorIds = new ArrayList<>();
     private ObservationListener observationListener;
     private NotificationListener notificationListener;
+    private Instant lastObservationReceievedAt = null;
 
     @Override
     public void ingestTrends() {
@@ -27,6 +29,7 @@ public class DesigoTrendsIngestionServiceSimulator implements TrendsIngestionSer
         for (SensorId sensorId : sensorIds) {
             ObservedValue observedValue = new ObservedValue(sensorId, ((Math.random() * (max - min)) + min));
             observationListener.observedValue(observedValue);
+            updateWhenLastObservationReceived();
         }
     }
 
@@ -94,4 +97,16 @@ public class DesigoTrendsIngestionServiceSimulator implements TrendsIngestionSer
         return numberOfMessagesFailed;
     }
 
+    protected synchronized void updateWhenLastObservationReceived() {
+        lastObservationReceievedAt = Instant.ofEpochMilli(System.currentTimeMillis());
+    }
+
+    @Override
+    public Instant getWhenLastMessageImported() {
+        return lastObservationReceievedAt;
+    }
+
+    protected void setLastEventReceievedAt(Instant lastObservationReceievedAt) {
+        this.lastObservationReceievedAt = lastObservationReceievedAt;
+    }
 }

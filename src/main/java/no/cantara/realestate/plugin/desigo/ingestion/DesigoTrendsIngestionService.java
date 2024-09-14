@@ -44,6 +44,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
     private boolean isInitialized = false;
     private String apiUrl;
     private boolean isHealthy;
+    private Instant lastObservationReceievedAt = null;
 
 
     /**
@@ -98,6 +99,7 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
                     Set<? extends TrendSample> trendSamples = desigoApiClient.findTrendSamplesByDate(trendId, -1, -1, lastObservedAt.minusSeconds(600));
                     isHealthy = true;
                     if (trendSamples != null && trendSamples.size() > 0) {
+                        updateWhenLastObservationReceived();
                         auditLog.trace("Ingest__TrendSamplesFound__{}__{}__{}__{}", trendId, sensorId.getClass(), sensorId.getId(), trendSamples.size());
                     } else {
                         auditLog.trace("Ingest__TrendSamplesFound__{}__{}__{}__{}", trendId, sensorId.getClass(), sensorId.getId(), 0);
@@ -272,5 +274,18 @@ public class DesigoTrendsIngestionService implements TrendsIngestionService {
 
     protected BasClient getDesigoApiClientRest() {
         return desigoApiClient;
+    }
+
+    protected synchronized void updateWhenLastObservationReceived() {
+        lastObservationReceievedAt = Instant.ofEpochMilli(System.currentTimeMillis());
+    }
+
+    @Override
+    public Instant getWhenLastMessageImported() {
+        return lastObservationReceievedAt;
+    }
+
+    protected void setWhenLastObservationReceivedAt(Instant lastObservationReceievedAt) {
+        this.lastObservationReceievedAt = lastObservationReceievedAt;
     }
 }

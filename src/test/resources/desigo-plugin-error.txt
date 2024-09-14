@@ -1,0 +1,25 @@
+
+24.06.2024 11:58:55 INFO [main] INFO  n.c.r.p.d.DesigoRealEstatePluginFactory.createIngestionServices - Added DesigoTrendsIngestionService
+24.06.2024 11:58:55 DEBUG [main] DEBUG n.c.r.c.RealestateCloudconnectorApplication.initPluginFactories - Found 2 ingestion services from pluginFactory: Siemens Desigo connector
+24.06.2024 11:58:55 INFO [main] INFO  n.c.r.c.RealestateCloudconnectorApplication.initPluginFactories - Desigo has a Ingestion service called DesigoPresentValueIngestionService.
+24.06.2024 11:58:55 INFO [main] INFO  n.c.r.c.RealestateCloudconnectorApplication.initPluginFactories - Desigo has a Ingestion service called DesigoTrendsIngestionService.
+24.06.2024 11:58:55 INFO [main] INFO  n.c.r.c.RealestateCloudconnectorApplication.initIngestionController - ServiceLoader found a Ingestion service called 'SimulatorPresentValueIngestionService' !
+24.06.2024 11:58:55 INFO [main] INFO  n.c.r.c.RealestateCloudconnectorApplication.initIngestionController - ServiceLoader found a Ingestion service called 'SimulatorTrendsIngestionService' !
+24.06.2024 11:58:55 INFO [main] INFO  n.c.r.c.RealestateCloudconnectorApplication.initIngestionController - ServiceLoader found 2 ingestion services!
+24.06.2024 11:58:55 ERROR [main] ERROR n.c.r.c.RealestateCloudconnectorApplication.main - Failed to start RealestateCloudconnectorApplication
+java.lang.NullPointerException: Cannot invoke "String.equals(Object)" because the return value of "no.cantara.realestate.semantics.rec.SensorRecObject.getRealEstate()" is null
+        at no.cantara.realestate.sensors.MappedIdQueryBuilder.lambda$realEstate$1(MappedIdQueryBuilder.java:25)
+        at java.base/java.util.function.Predicate.lambda$and$0(Predicate.java:69)
+        at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:178)
+        at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+        at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+        at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+        at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+        at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+        at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+        at no.cantara.realestate.cloudconnector.mappedid.MappedIdRepositoryImpl.find(MappedIdRepositoryImpl.java:63)
+        at no.cantara.realestate.cloudconnector.RealestateCloudconnectorApplication.findSensorsToSubscribeTo(RealestateCloudconnectorApplication.java:232)
+        at no.cantara.realestate.cloudconnector.RealestateCloudconnectorApplication.subscribeToSensors(RealestateCloudconnectorApplication.java:217)
+        at no.cantara.realestate.cloudconnector.RealestateCloudconnectorApplication.doInit(RealestateCloudconnectorApplication.java:104)
+        at no.cantara.stingray.application.AbstractStingrayApplication.init(AbstractStingrayApplication.java:104)
+        at no.cantara.realestate.cloudconnector.RealestateCloudconnectorApplication.main(RealestateCloudconnectorApplication.java:71)

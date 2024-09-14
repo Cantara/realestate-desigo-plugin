@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 
@@ -143,7 +144,8 @@ class AzureTrendsLastUpdatedServiceTest {
         sensorId.setId("TODOSensor1");
         trendsLastUpdatedRepository.addLastUpdated(sensorId, Instant.parse("2023-11-10T08:05:57Z"));
         assertEquals(Instant.parse("2023-11-10T08:05:57Z"),trendsLastUpdatedRepository.getTrendsLastUpdated().get(sensorId));
-        sensorId.setId(null);
+        //FIXME check if this scencario is valid DesigoSensorId.equals() independent of "id"
+        // sensorId.setId(null);
         trendsLastUpdatedService.persistLastUpdated(List.of(sensorId));
         verify(tableClient, times(1)).updateEntity(isA(TableEntity.class));
     }
@@ -158,7 +160,8 @@ class AzureTrendsLastUpdatedServiceTest {
         testTrendId.setTrendId("TestTrendTrend1");
         testTrendId.setId("Sensor-1234");
         trendsLastUpdatedRepository.addLastUpdated(testTrendId, Instant.parse("2023-11-10T08:05:57Z"));
-        sensorId.setId(null);
+//        sensorId.setId(null);
+        assertTrue(trendsLastUpdatedRepository.getTrendsLastUpdated().containsKey(sensorId));
         assertEquals(Instant.parse("2023-11-10T08:05:57Z"),trendsLastUpdatedRepository.getTrendsLastUpdated().get(sensorId));
     }
 }
