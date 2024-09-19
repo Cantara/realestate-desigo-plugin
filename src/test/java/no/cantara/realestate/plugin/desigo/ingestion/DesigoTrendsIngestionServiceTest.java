@@ -4,7 +4,7 @@ import no.cantara.realestate.azure.storage.AzureStorageTablesClient;
 import no.cantara.realestate.azure.storage.AzureTableClient;
 import no.cantara.realestate.observations.ObservationListener;
 import no.cantara.realestate.observations.TrendSample;
-import no.cantara.realestate.plugin.desigo.DesigoCloudConnectorException;
+import no.cantara.realestate.observations.Value;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoApiClientRest;
 import no.cantara.realestate.plugin.desigo.automationserver.DesigoTrendSample;
 import no.cantara.realestate.plugin.desigo.trends.AzureTrendsLastUpdatedService;
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -112,7 +111,9 @@ class DesigoTrendsIngestionServiceTest {
         trendSample.setSampleDate(Instant.now());
         trendSample.setObjectId(sensorId.getDesigoId());
         trendSample.setPropertyId(sensorId.getDesigoPropertyId());
-        trendSample.setValue(101);
+        Value value = new Value();
+        value.setValue(101);
+        trendSample.setValue(value);
         return trendSample;
     }
 

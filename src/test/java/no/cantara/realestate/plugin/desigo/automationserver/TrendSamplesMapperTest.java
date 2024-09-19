@@ -49,7 +49,7 @@ class TrendSamplesMapperTest {
         DesigoTrendSample sample = series.get(0);
         assertEquals("GmsDevice_2_1414052_121634835", sample.getObjectId());
         assertEquals("RAQual_Present_Value", sample.getPropertyId());
-        assertEquals(455, sample.getValue().intValue());
+        assertEquals(455, sample.getNumericValue());
         assertEquals("0", sample.getQuality());
         assertEquals(true, sample.isReliable());
         assertEquals(Instant.parse("2022-09-05T02:45:42.11Z"), sample.getSampleDate());

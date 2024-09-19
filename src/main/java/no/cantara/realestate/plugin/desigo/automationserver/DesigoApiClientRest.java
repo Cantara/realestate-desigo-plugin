@@ -8,7 +8,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
-import no.cantara.realestate.RealEstateException;
 import no.cantara.realestate.automationserver.BasClient;
 import no.cantara.realestate.json.RealEstateObjectMapper;
 import no.cantara.realestate.observations.TrendSample;
@@ -91,22 +90,6 @@ public class DesigoApiClientRest implements BasClient {
         this.notificationListener = notificationListener;
         logon(username, password);
     }
-
-
-    @Override
-    public Set<TrendSample> findTrendSamples(String bearerToken, String trendId) throws URISyntaxException {
-        RealEstateException re = new RealEstateException("Not Implemented");
-        tracer.spanBuilder("findTrendSamples").setSpanKind(SpanKind.INTERNAL).startSpan().recordException(re);
-        throw re;
-    }
-
-    @Override
-    public Set<TrendSample> findTrendSamples(String s, int i, int i1) throws URISyntaxException, LogonFailedException {
-        RealEstateException re = new RealEstateException("Not Implemented");
-        tracer.spanBuilder("findTrendSamples").setSpanKind(SpanKind.INTERNAL).startSpan().recordException(re);
-        throw re;
-    }
-
 
     @Override
     public Set<TrendSample> findTrendSamplesByDate(String trendId, int take, int skip, Instant onAndAfterDateTime) throws URISyntaxException, LogonFailedException {

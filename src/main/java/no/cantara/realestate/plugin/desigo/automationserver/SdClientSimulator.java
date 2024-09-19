@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -59,34 +58,6 @@ public class SdClientSimulator implements BasClient {
         presentValue.setObjectId(desigoSensorId.getDesigoId());
         presentValue.setPropertyId(desigoSensorId.getDesigoPropertyId());
         return presentValue;
-    }
-
-    @Override
-    public Set<DesigoTrendSample> findTrendSamples(String bearerToken, String trendId) throws URISyntaxException {
-        Set<DesigoTrendSample> trendSamples = new HashSet<>();
-        List<DesigoTrendSample> trendSamplesList = simulatedSDApiData.get(trendId);
-        if (trendSamplesList != null) {
-            trendSamples.addAll(trendSamplesList);
-        }
-
-        log.info("findTrendSamples returned:{} trendSamples", trendSamples.size());
-        return trendSamples;
-    }
-
-    synchronized void addNumberOfTrendSamplesReceived() {
-        if (numberOfTrendSamplesReceived < Long.MAX_VALUE) {
-            numberOfTrendSamplesReceived ++;
-        } else {
-            numberOfTrendSamplesReceived = 1;
-        }
-    }
-
-    @Override
-    public Set<DesigoTrendSample> findTrendSamples(String trendId, int take, int skip) throws URISyntaxException {
-        Set<DesigoTrendSample> trendSamples = findTrendSamples(null, trendId);
-        log.info("findTrendSamples returned:{} trendSamples", trendSamples.size());
-
-        return trendSamples;
     }
 
     @Override
