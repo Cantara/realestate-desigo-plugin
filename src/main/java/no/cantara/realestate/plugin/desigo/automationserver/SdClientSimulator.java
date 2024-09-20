@@ -1,6 +1,7 @@
 package no.cantara.realestate.plugin.desigo.automationserver;
 
 import no.cantara.realestate.automationserver.BasClient;
+import no.cantara.realestate.observations.PresentValue;
 import no.cantara.realestate.plugin.desigo.sensor.DesigoSensorMappingSimulator;
 import no.cantara.realestate.plugins.notifications.NotificationListener;
 import no.cantara.realestate.security.LogonFailedException;
@@ -48,7 +49,7 @@ public class SdClientSimulator implements BasClient {
     }
 
     @Override
-    public DesigoPresentValue findPresentValue(SensorId sensorId) throws URISyntaxException, LogonFailedException {
+    public PresentValue findPresentValue(SensorId sensorId) throws URISyntaxException, LogonFailedException {
         DesigoSensorId desigoSensorId = (DesigoSensorId) sensorId;
         DesigoPresentValue presentValue =  new DesigoPresentValue();
         Value value = new Value();
@@ -67,7 +68,7 @@ public class SdClientSimulator implements BasClient {
         int count = 0;
         if (trendTimeSamples != null) {
             for (DesigoTrendSample trendTimeSample : trendTimeSamples) {
-                if (trendTimeSample.getSampleDate().isAfter(onAndAfterDateTime)) {
+                if (trendTimeSample.getObservedAt().isAfter(onAndAfterDateTime)) {
                     trendSamples.add(trendTimeSample);
                     count++;
                     if (count > take) {
@@ -154,7 +155,7 @@ public class SdClientSimulator implements BasClient {
         Instant observedAt = Instant.now();
         trendSample.setTimestamp(observedAt.toString());
         Integer randomValue = ThreadLocalRandom.current().nextInt(50);
-        trendSample.setValue(randomValue.toString());
+        trendSample.setValue(randomValue);
         List<DesigoTrendSample> trendSimulations = simulatedSDApiData.get(trendId);
         if (trendSimulations == null) {
             trendSimulations = new ArrayList<>();

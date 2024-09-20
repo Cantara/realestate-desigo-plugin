@@ -1,5 +1,7 @@
 package no.cantara.realestate.plugin.desigo.automationserver;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import no.cantara.realestate.json.RealEstateObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
@@ -49,11 +51,24 @@ class TrendSamplesMapperTest {
         DesigoTrendSample sample = series.get(0);
         assertEquals("GmsDevice_2_1414052_121634835", sample.getObjectId());
         assertEquals("RAQual_Present_Value", sample.getPropertyId());
-        assertEquals(455, sample.getNumericValue());
+        assertEquals(455, sample.getValue());
         assertEquals("0", sample.getQuality());
         assertEquals(true, sample.isReliable());
-        assertEquals(Instant.parse("2022-09-05T02:45:42.11Z"), sample.getSampleDate());
+        assertEquals(Instant.parse("2022-09-05T02:45:42.11Z"), sample.getObservedAt());
 
 
+    }
+
+    @Test
+    void mapFromSingleValue() throws JsonProcessingException {
+        String valueJson = """
+                {
+                     "Value": "455",
+                     "Quality": "0",
+                     "QualityGood": true,
+                     "Timestamp": "2022-09-05T02:45:42.11Z"
+                    }""";
+        DesigoTrendSample sample = RealEstateObjectMapper.getInstance().getObjectMapper().readValue(valueJson, DesigoTrendSample.class);
+        assertEquals(455, sample.getValue());
     }
 }

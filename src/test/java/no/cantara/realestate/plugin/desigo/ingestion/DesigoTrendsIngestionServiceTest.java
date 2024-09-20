@@ -108,12 +108,12 @@ class DesigoTrendsIngestionServiceTest {
     private DesigoTrendSample stubTrendSample(DesigoSensorId sensorId) {
         DesigoTrendSample trendSample = new DesigoTrendSample();
         trendSample.setTrendId(sensorId.getTrendId());
-        trendSample.setSampleDate(Instant.now());
+        trendSample.setObservedAt(Instant.now());
         trendSample.setObjectId(sensorId.getDesigoId());
         trendSample.setPropertyId(sensorId.getDesigoPropertyId());
         Value value = new Value();
         value.setValue(101);
-        trendSample.setValue(value);
+        trendSample.setValue(101);
         return trendSample;
     }
 

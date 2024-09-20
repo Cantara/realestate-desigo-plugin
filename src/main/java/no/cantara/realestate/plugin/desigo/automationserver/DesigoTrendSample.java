@@ -1,13 +1,9 @@
 package no.cantara.realestate.plugin.desigo.automationserver;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import no.cantara.realestate.RealEstateException;
 import no.cantara.realestate.observations.TrendSample;
 
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.time.Instant;
-import java.util.Objects;
 
 /*
     {
@@ -18,6 +14,7 @@ import java.util.Objects;
     }
  */
 public class DesigoTrendSample extends TrendSample {
+    public static final String NUMMERIC_VALUE = "Value";
     private String trendId = null;
 
     @JsonProperty("Quality")
@@ -25,10 +22,11 @@ public class DesigoTrendSample extends TrendSample {
     @JsonProperty("QualityGood")
     private Boolean isReliable = null;
     @JsonProperty("Timestamp")
-    private Instant sampleDate;
+    private Instant observedAt;
 
     @JsonProperty("Value")
-    private String value;
+    private Number value;
+
     private String objectId;
 
     private String propertyId;
@@ -45,12 +43,6 @@ public class DesigoTrendSample extends TrendSample {
     }
 
 
-
-
-    public Instant getSampleDate() {
-        return sampleDate;
-    }
-
 //    public void setSampleDate(Instant sampleDate) {
 //        this.sampleDate = sampleDate;
 //    }
@@ -58,7 +50,12 @@ public class DesigoTrendSample extends TrendSample {
     public void setTimestamp(String timestamp) {
 //        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 //        LocalDate parsedDate = LocalDate.parse(timestamp, formatter);
-        this.sampleDate = Instant.parse(timestamp);
+       super.setObservedAt(Instant.parse(timestamp));
+    }
+
+    @Override
+    public void setObservedAt(Instant observedAt) {
+        super.setObservedAt(observedAt);
     }
 
     public String getQuality() {
@@ -77,13 +74,6 @@ public class DesigoTrendSample extends TrendSample {
         isReliable = reliable;
     }
 
-    public void setSampleDate(Instant sampleDate) {
-        this.sampleDate = sampleDate;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
 
     public String getPropertyId() {
         return propertyId;
@@ -97,22 +87,6 @@ public class DesigoTrendSample extends TrendSample {
         return true; //FIXME validate DesigoTrendSample
     }
 
-    public Number getValue() throws RealEstateException {
-        Number valNum = null;
-        if (value != null) {
-            try {
-                valNum = NumberFormat.getInstance().parse(value);
-            } catch (ParseException e) {
-                throw  new RealEstateException("Failed to parse value: " + value + ". Consider use getValueAsString()", e);
-            }
-        }
-        return valNum;
-    }
-
-    public String getValueAsString() {
-        return value;
-    }
-
     public void setObjectId(String objectId) {
         this.objectId = objectId;
     }
@@ -121,34 +95,7 @@ public class DesigoTrendSample extends TrendSample {
         return objectId;
     }
 
-    @Override
-    public Instant getObservedAt() {
-        return sampleDate;
-    }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DesigoTrendSample that = (DesigoTrendSample) o;
-        return Objects.equals(getTrendId(), that.getTrendId()) && Objects.equals(getQuality(), that.getQuality()) && Objects.equals(isReliable, that.isReliable) && Objects.equals(getSampleDate(), that.getSampleDate()) && Objects.equals(getValue(), that.getValue()) && Objects.equals(getObjectId(), that.getObjectId()) && Objects.equals(getPropertyId(), that.getPropertyId());
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getTrendId(), getQuality(), isReliable, getSampleDate(), getValue(), getObjectId(), getPropertyId());
-    }
 
-    @Override
-    public String toString() {
-        return "DesigoTrendSample{" +
-                "trendId='" + trendId + '\'' +
-                ", quality='" + quality + '\'' +
-                ", isReliable=" + isReliable +
-                ", sampleDate=" + sampleDate +
-                ", value='" + value + '\'' +
-                ", objectId='" + objectId + '\'' +
-                ", propertyId='" + propertyId + '\'' +
-                '}';
-    }
 }
