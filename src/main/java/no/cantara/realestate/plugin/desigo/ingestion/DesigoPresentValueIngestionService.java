@@ -62,7 +62,11 @@ public class DesigoPresentValueIngestionService implements PresentValueIngestion
 
     @Override
     public void ingestPresentValues() {
-        log.debug("Ingesting present values from Desigo CC API {} using sensorIds {}", apiUri, sensorIds);
+        long count = 0;
+        if (sensorIds != null) {
+            count = sensorIds.size();
+        }
+        log.debug("Ingesting present values from Desigo CC API {} with {} sensorIds", apiUri, count);
         for (SensorId sensorId : sensorIds) {
             try {
                 auditLog.trace("Ingest__PresentValueFindValue__{}__{}", sensorId.getId(), sensorId.getClass());
