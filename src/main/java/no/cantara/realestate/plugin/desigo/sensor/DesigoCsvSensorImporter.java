@@ -3,7 +3,7 @@ package no.cantara.realestate.plugin.desigo.sensor;
 import no.cantara.realestate.csv.CsvCollection;
 import no.cantara.realestate.csv.CsvReader;
 import no.cantara.realestate.importer.CsvSensorImporter;
-import no.cantara.realestate.semantics.rec.SensorRecObject;
+import no.cantara.realestate.rec.SensorRecObject;
 import no.cantara.realestate.sensors.MappedSensorId;
 import no.cantara.realestate.sensors.SensorId;
 import no.cantara.realestate.sensors.desigo.DesigoSensorId;
@@ -29,7 +29,7 @@ public class DesigoCsvSensorImporter extends CsvSensorImporter {
         CsvCollection collection = CsvReader.parse(filepath.toString());
         log.debug("ColumnNames: {}",collection.getColumnNames());
         for (Map<String, String> record : collection.getRecords()) {
-            DesigoSensorId sensorId = new DesigoSensorId( record.get("DesigoId"),record.get("DesigoPropertyId"));
+            DesigoSensorId sensorId = new DesigoSensorId( null, record.get("DesigoId"),record.get("DesigoPropertyId"));
             if (record.containsKey("DesigoTrendId")) {
                 sensorId.setTrendId(record.get("DesigoTrendId"));
             }
@@ -46,7 +46,7 @@ public class DesigoCsvSensorImporter extends CsvSensorImporter {
         log.debug("ColumnNames: {}", columnNames);
         for (Map<String, String> record : collection.getRecords()) {
 
-            DesigoSensorId sensorId = new DesigoSensorId( record.get("DesigoId"),record.get("DesigoPropertyId"));
+            DesigoSensorId sensorId = new DesigoSensorId(null, record.get("DesigoId"),record.get("DesigoPropertyId"));
             if(record.containsKey("DesigoTrendId")) {
                 sensorId.setTrendId(record.get("DesigoTrendId"));
             }

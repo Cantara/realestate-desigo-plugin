@@ -77,7 +77,7 @@ class AzureTrendsLastUpdatedServiceTest {
 
     @Test
     void persistLastUpdatedAt() {
-        DesigoSensorId sensorId = new DesigoSensorId("desigoId", "desigoPropertyId");
+        DesigoSensorId sensorId = new DesigoSensorId(null,"desigoId", "desigoPropertyId");
         sensorId.setId("id");
         sensorId.setTrendId("trendId");
         Instant newYearsEve = Instant.parse("2020-01-01T00:00:00.00Z");
@@ -91,7 +91,7 @@ class AzureTrendsLastUpdatedServiceTest {
 
     @Test
     void persistLastFailedAt() {
-        DesigoSensorId sensorId = new DesigoSensorId("desigoId", "desigoPropertyId");
+        DesigoSensorId sensorId = new DesigoSensorId(null,"desigoId", "desigoPropertyId");
         sensorId.setId("id");
         sensorId.setTrendId("trendId");
         Instant newYearsEve = Instant.parse("2020-01-01T00:00:00.00Z");
@@ -124,11 +124,11 @@ class AzureTrendsLastUpdatedServiceTest {
 
     @Test
     void persistLastUpdatedTest() {
-        DesigoSensorId sensorId = new DesigoSensorId("System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
+        DesigoSensorId sensorId = new DesigoSensorId(null,"System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
         sensorId.setTrendId("System1:GmsDevice_2_101414_83886086.general.Data:_offline.._value");
         sensorId.setId("TODOSensor1");
         trendsLastUpdatedRepository.addLastUpdated(sensorId, Instant.parse("2023-11-10T08:05:57Z"));
-        DesigoSensorId testTrendId = new DesigoSensorId("Id1", "prop1");
+        DesigoSensorId testTrendId = new DesigoSensorId(null,"Id1", "prop1");
         testTrendId.setTrendId("TestTrendTrend1");
         testTrendId.setId("Sensor-1234");
         trendsLastUpdatedRepository.addLastUpdated(testTrendId, Instant.parse("2023-11-10T08:05:57Z"));
@@ -139,7 +139,7 @@ class AzureTrendsLastUpdatedServiceTest {
 
     @Test
     void persistLastUpdatedSensorIdIsNull() {
-        DesigoSensorId sensorId = new DesigoSensorId("System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
+        DesigoSensorId sensorId = new DesigoSensorId(null,"System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
         sensorId.setTrendId("System1:GmsDevice_2_101414_83886086.general.Data:_offline.._value");
         sensorId.setId("TODOSensor1");
         trendsLastUpdatedRepository.addLastUpdated(sensorId, Instant.parse("2023-11-10T08:05:57Z"));
@@ -152,11 +152,11 @@ class AzureTrendsLastUpdatedServiceTest {
 
     @Test
     void persistLastUpdatedValidateRepository() {
-        DesigoSensorId sensorId = new DesigoSensorId("System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
+        DesigoSensorId sensorId = new DesigoSensorId(null,"System1:GmsDevice_2_101414_121634835", "RAQual_Present_Value");
         sensorId.setTrendId("System1:GmsDevice_2_101414_83886086.general.Data:_offline.._value");
         sensorId.setId("TODOSensor1");
         trendsLastUpdatedRepository.addLastUpdated(sensorId, Instant.parse("2023-11-10T08:05:57Z"));
-        DesigoSensorId testTrendId = new DesigoSensorId("Id1", "prop1");
+        DesigoSensorId testTrendId = new DesigoSensorId(null,"Id1", "prop1");
         testTrendId.setTrendId("TestTrendTrend1");
         testTrendId.setId("Sensor-1234");
         trendsLastUpdatedRepository.addLastUpdated(testTrendId, Instant.parse("2023-11-10T08:05:57Z"));

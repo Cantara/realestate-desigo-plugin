@@ -2,7 +2,7 @@ package no.cantara.realestate.plugin.desigo.sensor;
 
 import no.cantara.realestate.plugins.config.PluginConfig;
 import no.cantara.realestate.plugins.sensormapping.PluginSensorMappingImporter;
-import no.cantara.realestate.semantics.rec.SensorRecObject;
+import no.cantara.realestate.rec.SensorRecObject;
 import no.cantara.realestate.sensors.MappedSensorId;
 import no.cantara.realestate.sensors.SensorId;
 import no.cantara.realestate.sensors.SensorType;
@@ -27,10 +27,10 @@ public class DesigoSensorMappingSimulator extends PluginSensorMappingImporter {
     public List<MappedSensorId> importSensorMappings() {
         log.warn("Using simulated SensorId's");
         List<MappedSensorId> mappedSensorIds = new ArrayList<>();
-        SensorId simulatedCo2Sensor = new DesigoSensorId("desigoId1", "desigoPropertyId1");
+        SensorId simulatedCo2Sensor = new DesigoSensorId(null,"desigoId1", "desigoPropertyId1");
         ((DesigoSensorId) simulatedCo2Sensor).setTrendId("System1:GmsDevice_2_1212052_83886086.general.DataCo2:_offline.._value");
         MappedSensorId mappedSimulatedCo2Sensor = new MappedSensorId(simulatedCo2Sensor, buildRecStub("room1", SensorType.co2));
-        SensorId simulatedTempSensor = new DesigoSensorId("desigoId2", "desigoPropertyId2");
+        SensorId simulatedTempSensor = new DesigoSensorId(null,"desigoId2", "desigoPropertyId2");
         ((DesigoSensorId) simulatedTempSensor).setTrendId("System1:GmsDevice_2_1212052_83886086.general.DataTemp:_offline.._value");
         MappedSensorId mappedSimulatedTempSensor = new MappedSensorId(simulatedTempSensor, buildRecStub("room1", SensorType.temp));
         mappedSensorIds.add(mappedSimulatedCo2Sensor);

@@ -87,7 +87,7 @@ public class AzureTrendsLastUpdatedService implements TrendsLastUpdatedService {
                 log.trace("Could not parse lastUpdatedAtString: {} for RowKey {}. objectId.propertyId {}.{}.", lastUpdatedAtString, trendId, desigoObjectId, desigoPropertyId, e);
             }
         }
-        DesigoSensorId sensorId = new DesigoSensorId(desigoObjectId, desigoPropertyId);
+        DesigoSensorId sensorId = new DesigoSensorId(null, desigoObjectId, desigoPropertyId);
         sensorId.setId(id);
         sensorId.setTrendId(trendId);
         if (lastUpdatedAt != null) {

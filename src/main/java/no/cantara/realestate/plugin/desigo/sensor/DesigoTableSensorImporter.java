@@ -1,7 +1,7 @@
 package no.cantara.realestate.plugin.desigo.sensor;
 
 import no.cantara.realestate.importer.SensorImporter;
-import no.cantara.realestate.semantics.rec.SensorRecObject;
+import no.cantara.realestate.rec.SensorRecObject;
 import no.cantara.realestate.sensors.MappedSensorId;
 import no.cantara.realestate.sensors.SensorId;
 import no.cantara.realestate.sensors.SensorSystem;
@@ -29,7 +29,7 @@ public class DesigoTableSensorImporter implements SensorImporter {
     public List<SensorId> importSensors(String sourceType) {
         List<SensorId> sensorIds = new ArrayList<>();
         for (Map<String, String> row : tableRows) {
-            SensorId sensorId = new DesigoSensorId( row.get("DesigoId"), row.get("DesigoPropertyId"));
+            SensorId sensorId = new DesigoSensorId(null, row.get("DesigoId"), row.get("DesigoPropertyId"));
             if (row.containsKey("DesigoTrendId")) {
                 ((DesigoSensorId) sensorId).setTrendId(row.get("DesigoTrendId"));
             }
@@ -50,7 +50,7 @@ public class DesigoTableSensorImporter implements SensorImporter {
         List<MappedSensorId> mappedSensorIds = new ArrayList<>();
         for (Map<String, String> row : tableRows) {
             List<String> columnNames = new ArrayList<>(row.keySet());
-            SensorId sensorId = new DesigoSensorId(row.get("DesigoId"), row.get("DesigoPropertyId"));
+            SensorId sensorId = new DesigoSensorId(null, row.get("DesigoId"), row.get("DesigoPropertyId"));
             if (row.containsKey("DesigoTrendId")) {
                 ((DesigoSensorId) sensorId).setTrendId(row.get("DesigoTrendId"));
             }
@@ -70,7 +70,7 @@ public class DesigoTableSensorImporter implements SensorImporter {
     public List<SensorId> importSensorIds(SensorSystem sensorSystem) {
         List<SensorId> sensorIds = new ArrayList<>();
         for (Map<String, String> row : tableRows) {
-            SensorId sensorId = new DesigoSensorId(row.get("DesigoId"), row.get("DesigoPropertyId"));
+            SensorId sensorId = new DesigoSensorId(null, row.get("DesigoId"), row.get("DesigoPropertyId"));
             if (row.containsKey("DesigoTrendId")) {
                 ((DesigoSensorId) sensorId).setTrendId(row.get("DesigoTrendId"));
             }

@@ -35,7 +35,7 @@ class DesigoPresentValueIngestionServiceTest {
         this.config = mock(PluginConfig.class);
         this.desigoApiClient = mock(DesigoApiClientRest.class);
         this.ingestionService = new DesigoPresentValueIngestionService( config, observationListener, notificationListener, desigoApiClient);
-        sensorId = new DesigoSensorId("desigoId1", "propertyId2");
+        sensorId = new DesigoSensorId(null,"desigoId1", "propertyId2");
         ingestionService.addSubscription(sensorId);
         presentValue = new DesigoPresentValue();
         presentValue.setValue(1234L);

@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class StubDesigoSensorId {
 
     public static DesigoSensorId createDesigoSensorStub() {
-        DesigoSensorId desigoSensorId =  new DesigoSensorId("desigoId1", "propertyId1");
+        DesigoSensorId desigoSensorId =  new DesigoSensorId(null,"desigoId1", "propertyId1");
         desigoSensorId.setId("SensorId1");
         desigoSensorId.setTrendId("trend1");
         return desigoSensorId;
