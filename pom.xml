@@ -5,7 +5,7 @@
 
   <groupId>no.cantara.realestate</groupId>
   <artifactId>desigo-plugin</artifactId>
-  <version>0.3.1-SNAPSHOT</version>
+  <version>0.3.1</version>
 
   <name>realestate-desigo-plugin</name>
   <url>https://github.com/Cantara/realestate-desigo-plugin</url>
@@ -19,7 +19,7 @@
     <developerConnection>scm:git:ssh://git@github.com/cantara/realestate-desigo-plugin.git</developerConnection>
     <connection>scm:git:https://github.com/cantara/realestate-desigo-plugin.git</connection>
     <url>https://github.com/cantara/realestate-desigo-plugin</url>
-    <tag>HEAD</tag>
+    <tag>v0.3.1</tag>
   </scm>
 
   <properties>
