@@ -27,7 +27,7 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <slf4j.version>2.0.18</slf4j.version>
-    <mockserver.version>5.15.0</mockserver.version>
+    <mockserver.version>7.2.0</mockserver.version>
   </properties>
 
   <dependencies>
